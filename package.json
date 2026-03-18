@@ -6,7 +6,8 @@
   "description": "Host-side bridge for OpenClaw pc-control.",
   "scripts": {
     "start": "node src/index.mjs",
-    "check": "node --check src/index.mjs"
+    "check": "node --check src/index.mjs",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=20"

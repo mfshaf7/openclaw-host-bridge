@@ -20,6 +20,17 @@ function realNormalized(candidate) {
   return path.resolve(candidate);
 }
 
+export function normalizeInputPath(inputPath) {
+  const trimmed = inputPath.trim();
+  const driveMatch = /^([a-zA-Z]):[\\/](.*)$/.exec(trimmed);
+  if (!driveMatch) {
+    return trimmed;
+  }
+  const drive = driveMatch[1].toLowerCase();
+  const remainder = driveMatch[2].replace(/[\\]+/g, "/");
+  return `/mnt/${drive}/${remainder}`;
+}
+
 export function isPathWithinRoot(candidate, root) {
   const normalizedCandidate = realNormalized(candidate);
   const normalizedRoot = realNormalized(root);
@@ -35,7 +46,7 @@ export function resolveAllowedPath(config, inputPath, options = {}) {
     err.code = "invalid_argument";
     throw err;
   }
-  const trimmed = inputPath.trim();
+  const trimmed = normalizeInputPath(inputPath);
   const direct = path.isAbsolute(trimmed) ? path.resolve(trimmed) : null;
   const candidates = [];
   if (direct) {
