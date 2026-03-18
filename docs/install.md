@@ -1,35 +1,99 @@
 # Install Guide
 
+## Goal
+
+At the end of this guide you should have:
+
+- the bridge running inside WSL
+- OpenClaw able to reach it at `http://host.docker.internal:48721`
+- read-only host access working first
+- organize mode optional after validation
+
 ## 1. Prepare WSL
 
-Install WSL2 and a distro such as `Ubuntu`.
+Install:
 
-Inside WSL, ensure Node is installed and available to the bridge runtime.
+- WSL2
+- a distro such as `Ubuntu`
+- Node inside WSL
 
-## 2. Configure bridge policy
+Confirm Node works:
 
-Start from the example WSL policy and customize:
+```bash
+node --version
+```
 
-- Windows user paths under `/mnt/c/Users/<windows-user>/...`
-- staging directory
-- audit directory
-- permission flags
+## 2. Create a local bridge policy
 
-Recommended starting mode:
+Start from:
 
-- `read: true`
-- `organize: false`
-- `export: false`
-- `browser_inspect: false`
+- `config/policy.wsl.example.json`
 
-## 3. Install OpenClaw-side pieces
+Create a local copy, for example:
+
+- `config/policy.local.json`
+
+Replace these placeholders:
+
+- `<windows-user>`
+- `<wsl-user>`
+- `<project-dir>`
+
+Typical values you need to set:
+
+- `allowed_roots`
+- `staging_dir`
+- `audit.dir`
+
+Recommended first policy:
+
+```json
+{
+  "permissions": {
+    "read": true,
+    "organize": false,
+    "export": false,
+    "browser_inspect": false,
+    "admin_high_risk": false
+  }
+}
+```
+
+## 3. Start the bridge in WSL
+
+Simplest first run:
+
+```bash
+export PC_CONTROL_BRIDGE_CONFIG=/path/to/policy.local.json
+node src/index.mjs
+```
+
+If that works, you can later use the helper scripts under `scripts/`.
+
+Expected success output:
+
+```json
+{"ok":true,"service":"pc-control-bridge","host":"0.0.0.0","port":48721}
+```
+
+## 4. Check bridge health
+
+From the machine that runs OpenClaw, verify:
+
+```bash
+curl http://host.docker.internal:48721/healthz
+```
+
+You should get a JSON response with `ok: true`.
+
+## 5. Install OpenClaw-side pieces
 
 Install:
 
 - the `pc-control` skill
-- the `pc-control` OpenClaw plugin
+- the `pc-control` plugin
 
-Recommended plugin profile:
+Recommended starting plugin profile:
 
 ```json
 {
@@ -52,21 +116,34 @@ Recommended plugin profile:
 }
 ```
 
-## 4. Start the bridge
+## 6. Validate read-only mode
 
-Use the WSL startup script or daemon wrapper.
+Check:
 
-For organize mode, enable:
+- the plugin is loaded in OpenClaw
+- `health.check` works
+- `fs.list` works
+- `fs.search` works
+- `fs.read_meta` works
 
-- plugin `allowWriteOperations: true`
-- bridge policy `organize: true`
+Do not enable organize mode until these work cleanly.
 
-## 5. Validate
+## 7. Enable organize mode
 
-Verify:
+To enable folder creation and moves:
 
-- bridge health endpoint responds
-- `pc-control` plugin is loaded in OpenClaw
-- read-only tool calls work
+1. set plugin `allowWriteOperations: true`
+2. set bridge policy `organize: true`
 
-Then enable organize mode and verify `fs.mkdir` / `fs.move`.
+Even then, mutating calls should require:
+
+- `confirm: true`
+
+## 8. Treat export and browser inspection separately
+
+Do not enable these by default:
+
+- `allowExportOperations`
+- `allowBrowserInspect`
+
+They are a separate risk class from read-only and organize actions.
