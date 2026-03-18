@@ -26,6 +26,7 @@ OpenClaw running inside a container does not automatically gain access to the re
 - OpenClaw reaches the bridge over HTTP on the host
 - recommended ownership is a hidden Windows Scheduled Task that launches the WSL bridge
 - the WSL launcher should reject duplicate starts so repeated task triggers do not race on the port
+- natural Telegram phrasing such as `check my downloads folder` should resolve to host-PC bridge operations, not container-local inspection
 
 ## What is configurable
 

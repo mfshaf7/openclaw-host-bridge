@@ -71,6 +71,29 @@ You need three pieces:
 - export flow: not complete
 - browser inspection: not complete
 
+## Telegram Usage
+
+You should not need to say `use pc-control` for obvious host-PC requests.
+
+Natural read-only examples:
+
+- `check my downloads folder`
+- `what's in my desktop`
+- `find OpenClaw files in my downloads`
+- `show details for C:\Users\me\Downloads\report.docx`
+- `what browser tabs do I have open`
+
+Natural write examples:
+
+- `create a folder called Test in my downloads and confirm it`
+- `move report.docx into my For Review folder and confirm it`
+
+Recommended behavior:
+
+- ordinary host-file and browser questions should route to `pc-control` automatically
+- writes should still be explicit and confirmation-gated
+- container or VM questions should stay outside `pc-control` unless the user clearly means the host PC
+
 ## Recommended First Config
 
 Start with:

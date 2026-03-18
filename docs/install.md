@@ -150,6 +150,14 @@ Check:
 
 Do not enable organize mode until these work cleanly.
 
+Recommended Telegram checks:
+
+- `check my downloads folder`
+- `find OpenClaw files in my downloads`
+- `show details for C:\Users\<windows-user>\Downloads\<file-name>`
+
+The goal is for natural host-PC phrasing to work without forcing the user to say `use pc-control`.
+
 ## 8. Enable organize mode
 
 To enable folder creation and moves:
@@ -160,6 +168,11 @@ To enable folder creation and moves:
 Even then, mutating calls should require:
 
 - `confirm: true`
+
+Recommended Telegram write checks:
+
+- `create a folder called Test in my downloads and confirm it`
+- `move <file> into my For Review folder and confirm it`
 
 ## 9. Treat export and browser inspection separately
 
