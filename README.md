@@ -14,6 +14,7 @@ Current v1 focus:
 - file search
 - metadata inspection
 - folder organization
+- silent task-owned startup on Windows with a WSL-backed bridge
 
 ## Supported mode
 
@@ -34,19 +35,20 @@ This is an extension pattern, not an OpenClaw core patch.
    - `<windows-user>`
    - `<wsl-user>`
    - `<project-dir>`
-4. Start the bridge inside WSL:
+4. Verify the bridge once in WSL:
 
 ```bash
+export PC_CONTROL_BRIDGE_CONFIG=/path/to/policy.local.json
 node src/index.mjs
 ```
 
-or use the provided startup scripts under `scripts/`.
+5. After the foreground check passes, switch to the hidden startup path with the scripts under `scripts/`.
 
-5. In OpenClaw, enable the `pc-control` plugin with:
+6. In OpenClaw, enable the `pc-control` plugin with:
    - `bridgeUrl: "http://host.docker.internal:48721"`
    - `authTokenEnv: "OPENCLAW_GATEWAY_TOKEN"`
-6. Start with read-only mode.
-7. Turn on organize mode later if you want `mkdir` and `move`.
+7. Start with read-only mode.
+8. Turn on organize mode later if you want `mkdir` and `move`.
 
 ## What You Install
 
@@ -90,4 +92,4 @@ Then enable organize mode only after read-only calls are working.
 
 ## Important limitation
 
-Windows silent persistence should currently be treated as beta and validated per environment.
+Windows silent persistence is supported in this repo, but should still be validated once per environment after install and after a reboot/logon cycle.

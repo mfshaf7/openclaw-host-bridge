@@ -1,16 +1,17 @@
 $ErrorActionPreference = 'Stop'
 
+$userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $launcherPath = if ($env:PC_CONTROL_WINDOWS_LAUNCHER) {
   $env:PC_CONTROL_WINDOWS_LAUNCHER
 } else {
-  'C:\Users\Sevensoul\AppData\Local\Temp\start-pc-control-bridge-hidden.ps1'
+  (Join-Path $env:TEMP 'start-pc-control-bridge-hidden.ps1')
 }
 
 $action = New-ScheduledTaskAction `
   -Execute 'powershell.exe' `
   -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$launcherPath`""
 
-$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+$trigger = New-ScheduledTaskTrigger -AtLogOn -User $userId
 $settings = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
   -DontStopIfGoingOnBatteries `
@@ -19,7 +20,7 @@ $settings = New-ScheduledTaskSettingsSet `
   -Hidden
 
 $principal = New-ScheduledTaskPrincipal `
-  -UserId $env:USERNAME `
+  -UserId $userId `
   -LogonType Interactive `
   -RunLevel Limited
 

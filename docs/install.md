@@ -59,7 +59,7 @@ Recommended first policy:
 }
 ```
 
-## 3. Start the bridge in WSL
+## 3. Verify the bridge once in WSL
 
 Simplest first run:
 
@@ -68,7 +68,7 @@ export PC_CONTROL_BRIDGE_CONFIG=/path/to/policy.local.json
 node src/index.mjs
 ```
 
-If that works, you can later use the helper scripts under `scripts/`.
+If that works, move to the hidden startup path.
 
 Expected success output:
 
@@ -86,7 +86,29 @@ curl http://host.docker.internal:48721/healthz
 
 You should get a JSON response with `ok: true`.
 
-## 5. Install OpenClaw-side pieces
+## 5. Install the hidden startup path
+
+Copy the Windows launcher:
+
+```bash
+cp scripts/start-pc-control-bridge-hidden.ps1 /mnt/c/Users/<windows-user>/AppData/Local/Temp/start-pc-control-bridge-hidden.ps1
+```
+
+Register the Scheduled Task from WSL:
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w scripts/register-pc-control-bridge-hidden-task.ps1)"
+```
+
+The task should be named `OpenClawPcControlBridge`.
+
+Expected result:
+
+- `LastTaskResult : 0`
+- the bridge stays reachable at `http://host.docker.internal:48721/healthz`
+- no visible command window is required
+
+## 6. Install OpenClaw-side pieces
 
 Install:
 
@@ -116,7 +138,7 @@ Recommended starting plugin profile:
 }
 ```
 
-## 6. Validate read-only mode
+## 7. Validate read-only mode
 
 Check:
 
@@ -128,7 +150,7 @@ Check:
 
 Do not enable organize mode until these work cleanly.
 
-## 7. Enable organize mode
+## 8. Enable organize mode
 
 To enable folder creation and moves:
 
@@ -139,7 +161,7 @@ Even then, mutating calls should require:
 
 - `confirm: true`
 
-## 8. Treat export and browser inspection separately
+## 9. Treat export and browser inspection separately
 
 Do not enable these by default:
 

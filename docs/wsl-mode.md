@@ -24,6 +24,8 @@ OpenClaw running inside a container does not automatically gain access to the re
 - the bridge runs inside WSL
 - the bridge sees Windows files through `/mnt/c/...`
 - OpenClaw reaches the bridge over HTTP on the host
+- recommended ownership is a hidden Windows Scheduled Task that launches the WSL bridge
+- the WSL launcher should reject duplicate starts so repeated task triggers do not race on the port
 
 ## What is configurable
 
