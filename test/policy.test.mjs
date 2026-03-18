@@ -5,8 +5,8 @@ import { normalizeInputPath, resolveAllowedPath } from "../src/policy.mjs";
 
 test("normalizeInputPath converts Windows drive paths to WSL mount paths", () => {
   assert.equal(
-    normalizeInputPath("C:\\Users\\Sevensoul\\Downloads"),
-    "/mnt/c/Users/Sevensoul/Downloads",
+    normalizeInputPath("C:\\Users\\Example\\Downloads"),
+    "/mnt/c/Users/Example/Downloads",
   );
   assert.equal(
     normalizeInputPath("D:/Work Files/OpenClaw"),
@@ -16,22 +16,37 @@ test("normalizeInputPath converts Windows drive paths to WSL mount paths", () =>
 
 test("resolveAllowedPath accepts a Windows absolute path inside allowed roots", () => {
   const config = {
-    allowedRoots: ["/mnt/c/Users/Sevensoul/Downloads", "/mnt/c/Users/Sevensoul/Documents"],
+    allowedRoots: ["/mnt/c/Users/Example/Downloads", "/mnt/c/Users/Example/Documents"],
     stagingDir: "/tmp/staging",
   };
   assert.equal(
-    resolveAllowedPath(config, "C:\\Users\\Sevensoul\\Downloads"),
-    "/mnt/c/Users/Sevensoul/Downloads",
+    resolveAllowedPath(config, "C:\\Users\\Example\\Downloads"),
+    "/mnt/c/Users/Example/Downloads",
   );
 });
 
 test("resolveAllowedPath rejects Windows absolute paths outside allowed roots", () => {
   const config = {
-    allowedRoots: ["/mnt/c/Users/Sevensoul/Downloads"],
+    allowedRoots: ["/mnt/c/Users/Example/Downloads"],
     stagingDir: "/tmp/staging",
   };
   assert.throws(
     () => resolveAllowedPath(config, "C:\\Windows\\System32"),
     /outside allowed roots/,
+  );
+});
+
+test("resolveAllowedPath accepts natural root aliases like desktop and downloads", () => {
+  const config = {
+    allowedRoots: [
+      "/mnt/c/Users/Example/OneDrive/Desktop",
+      "/mnt/c/Users/Example/Downloads",
+    ],
+    stagingDir: "/tmp/staging",
+  };
+  assert.equal(resolveAllowedPath(config, "desktop"), "/mnt/c/Users/Example/OneDrive/Desktop");
+  assert.equal(
+    resolveAllowedPath(config, "downloads/openclaw"),
+    "/mnt/c/Users/Example/Downloads/openclaw",
   );
 });

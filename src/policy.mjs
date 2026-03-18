@@ -20,6 +20,10 @@ function realNormalized(candidate) {
   return path.resolve(candidate);
 }
 
+function normalizeAliasKey(value) {
+  return value.trim().replace(/[\\/]+/g, "/").replace(/^\/+|\/+$/g, "").toLowerCase();
+}
+
 export function normalizeInputPath(inputPath) {
   const trimmed = inputPath.trim();
   const driveMatch = /^([a-zA-Z]):[\\/](.*)$/.exec(trimmed);
@@ -40,6 +44,34 @@ export function isPathWithinRoot(candidate, root) {
   );
 }
 
+function buildAllowedRootAliasMap(config) {
+  const aliases = new Map();
+  for (const root of config.allowedRoots) {
+    const baseName = path.basename(root).trim();
+    if (!baseName) {
+      continue;
+    }
+    aliases.set(baseName.toLowerCase(), root);
+  }
+  return aliases;
+}
+
+function resolveAliasCandidate(config, inputPath) {
+  const normalized = normalizeAliasKey(inputPath);
+  if (!normalized) {
+    return null;
+  }
+  const aliases = buildAllowedRootAliasMap(config);
+  const segments = normalized.split("/");
+  const rootAlias = segments[0];
+  const mappedRoot = aliases.get(rootAlias);
+  if (!mappedRoot) {
+    return null;
+  }
+  const remainder = segments.slice(1).join(path.sep);
+  return remainder ? path.resolve(mappedRoot, remainder) : path.resolve(mappedRoot);
+}
+
 export function resolveAllowedPath(config, inputPath, options = {}) {
   if (typeof inputPath !== "string" || !inputPath.trim()) {
     const err = new Error("Path must be a non-empty string");
@@ -52,6 +84,10 @@ export function resolveAllowedPath(config, inputPath, options = {}) {
   if (direct) {
     candidates.push(direct);
   } else {
+    const aliasCandidate = resolveAliasCandidate(config, trimmed);
+    if (aliasCandidate) {
+      candidates.push(aliasCandidate);
+    }
     for (const root of config.allowedRoots) {
       candidates.push(path.resolve(root, trimmed));
     }

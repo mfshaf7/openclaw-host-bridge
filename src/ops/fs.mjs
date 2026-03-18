@@ -94,8 +94,44 @@ export async function zipForExport() {
   throw err;
 }
 
-export async function stageForTelegram() {
-  const err = new Error("stage_for_telegram is not implemented yet in the scaffold");
-  err.code = "not_implemented";
-  throw err;
+function splitName(fileName) {
+  const parsed = path.parse(fileName);
+  return {
+    base: parsed.name || "export",
+    ext: parsed.ext || "",
+  };
+}
+
+async function allocateStagingPath(config, fileName) {
+  const { base, ext } = splitName(fileName);
+  const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+  const suffix = Math.random().toString(36).slice(2, 8);
+  const stagedFileName = `${base}-${timestamp}-${suffix}${ext}`;
+  const stagedPath = path.join(config.stagingDir, stagedFileName);
+  await fs.mkdir(config.stagingDir, { recursive: true });
+  return stagedPath;
+}
+
+export async function stageForTelegram(config, args) {
+  const sourcePath = resolveAllowedPath(config, args?.path);
+  const stat = await fs.stat(sourcePath);
+  if (!stat.isFile()) {
+    const err = new Error("stage_for_telegram only supports regular files");
+    err.code = "invalid_argument";
+    throw err;
+  }
+  if (stat.size > config.limits.maxExportBytes) {
+    const err = new Error("File exceeds max_export_bytes policy limit");
+    err.code = "policy_denied";
+    throw err;
+  }
+  const stagedPath = await allocateStagingPath(config, path.basename(sourcePath));
+  await fs.copyFile(sourcePath, stagedPath);
+  return {
+    original_path: sourcePath,
+    path: stagedPath,
+    file_name: path.basename(stagedPath),
+    size: stat.size,
+    staged: true,
+  };
 }
