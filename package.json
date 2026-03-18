@@ -1,0 +1,14 @@
+{
+  "name": "pc-control-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Host-side bridge for OpenClaw pc-control.",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "check": "node --check src/index.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

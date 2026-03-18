@@ -1,0 +1,31 @@
+{
+  "mode": "default_read_only",
+  "listen": {
+    "host": "127.0.0.1",
+    "port": 48721
+  },
+  "auth": {
+    "token_env": "PC_CONTROL_BRIDGE_TOKEN"
+  },
+  "allowed_roots": [
+    "Desktop",
+    "Documents",
+    "Downloads"
+  ],
+  "staging_dir": "Downloads\\OpenClaw-Staging",
+  "permissions": {
+    "read": true,
+    "organize": false,
+    "export": false,
+    "browser_inspect": false,
+    "admin_high_risk": false
+  },
+  "limits": {
+    "search_max_results": 100,
+    "max_export_files": 20,
+    "max_export_bytes": 104857600
+  },
+  "audit": {
+    "dir": "%LOCALAPPDATA%\\OpenClaw\\pc-control-bridge\\audit"
+  }
+}

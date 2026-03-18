@@ -1,0 +1,31 @@
+{
+  "mode": "default_read_only",
+  "listen": {
+    "host": "0.0.0.0",
+    "port": 48721
+  },
+  "auth": {
+    "token_env": "OPENCLAW_GATEWAY_TOKEN"
+  },
+  "allowed_roots": [
+    "/mnt/c/Users/<windows-user>/OneDrive/Desktop",
+    "/mnt/c/Users/<windows-user>/Documents",
+    "/mnt/c/Users/<windows-user>/Downloads"
+  ],
+  "staging_dir": "/home/<wsl-user>/<project-dir>/tmp/pc-control-staging",
+  "permissions": {
+    "read": true,
+    "organize": false,
+    "export": false,
+    "browser_inspect": false,
+    "admin_high_risk": false
+  },
+  "limits": {
+    "search_max_results": 100,
+    "max_export_files": 20,
+    "max_export_bytes": 104857600
+  },
+  "audit": {
+    "dir": "/home/<wsl-user>/<project-dir>/tmp/pc-control-audit"
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+tmp/
+dist/
+.DS_Store
+*.log
+config/policy.local.json
+*.pid
