@@ -115,6 +115,15 @@ Install:
 - the `pc-control` skill
 - the `pc-control` plugin
 
+Install the plugin through the managed installer from the OpenClaw checkout:
+
+```bash
+openclaw plugins install ./pc-control-openclaw-plugin
+```
+
+That records `plugins.installs` provenance and avoids the
+`loaded without install/load-path provenance` warning for `pc-control`.
+
 Recommended starting plugin profile:
 
 ```json
@@ -137,6 +146,14 @@ Recommended starting plugin profile:
   }
 }
 ```
+
+Recommended gateway hardening for the paired OpenClaw runtime when the Docker
+deployment keeps `gateway.bind` beyond loopback:
+
+- keep gateway auth in `token` mode
+- add `gateway.auth.rateLimit`
+- restrict the forwarded OpenClaw ports at the Windows host firewall layer if
+  Docker/WSL cannot safely enforce localhost-only publishing
 
 ## 7. Validate read-only mode
 
