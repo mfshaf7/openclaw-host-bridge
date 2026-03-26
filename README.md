@@ -88,10 +88,10 @@ This is not a hidden workaround. It is the current supported operating model of 
 
 Read in this order:
 
-1. [docs/architecture.md](/home/mfshaf7/projects/pc-control-bridge/docs/architecture.md)
-2. [docs/security-model.md](/home/mfshaf7/projects/pc-control-bridge/docs/security-model.md)
-3. [docs/wsl-mode.md](/home/mfshaf7/projects/pc-control-bridge/docs/wsl-mode.md)
-4. [docs/install.md](/home/mfshaf7/projects/pc-control-bridge/docs/install.md)
+1. [docs/architecture.md](docs/architecture.md)
+2. [docs/security-model.md](docs/security-model.md)
+3. [docs/wsl-mode.md](docs/wsl-mode.md)
+4. [docs/install.md](docs/install.md)
 
 ## Tests
 
