@@ -1,75 +1,99 @@
 # Architecture
 
-## Goal
+## Purpose
 
-Keep OpenClaw isolated while allowing controlled access to the real host PC.
+This document explains where `pc-control-bridge` sits in the overall system and why it is separate from both OpenClaw core and channel-specific behavior.
 
-## Components
+## System Position
 
-1. `pc-control` skill
-- user-facing workflow and operating guidance
+```mermaid
+flowchart LR
+    User[Telegram / UI / operator]
+    OpenClaw[OpenClaw runtime]
+    Plugin[pc-control plugin]
+    Bridge[pc-control-bridge]
+    Host[Windows host]
 
-2. `pc-control` OpenClaw plugin
-- typed tools exposed to OpenClaw
-- maps tool calls to bridge operations
+    User --> OpenClaw --> Plugin --> Bridge --> Host
+```
 
-3. `pc-control-bridge`
-- host-side policy enforcement point
-- owns path restrictions, operation restrictions, and audit logging
+The bridge is the host-side enforcement point in that chain.
 
-## Trust boundaries
+## Separation Of Responsibilities
 
 ### OpenClaw runtime
 
-Responsibilities:
+Owns:
 
 - conversation
-- orchestration
-- approval flow
-- tool invocation
+- routing
+- approvals
+- tool orchestration
 
-Not the trust anchor for host access.
+Does not own host policy.
 
-### Host bridge
+### pc-control plugin
 
-Responsibilities:
+Owns:
 
-- allowlisted operations only
-- allowed roots only
-- permission classes
+- typed tool definitions
+- confirmation semantics
+- bridge request formatting
+
+Does not own host enforcement.
+
+### pc-control-bridge
+
+Owns:
+
+- operation allowlists
+- allowed roots
+- export staging
 - audit logging
+- host-specific execution
 
-This is the trust anchor for host control.
+This is why the bridge is the host trust anchor.
 
-### Delivery channel
+## Trust Boundaries
 
-If files are later sent through Telegram or another channel, that is a separate exfiltration boundary and must be treated independently from host organization.
+### Boundary 1: runtime
 
-## Recommended capability tiers
+The OpenClaw runtime can ask for host actions, but it should not decide host policy by itself.
 
-### Tier 1
+### Boundary 2: bridge
+
+The bridge is where host access is allowed or denied.
+
+### Boundary 3: delivery channel
+
+If the system exports files or screenshots through Telegram, that is a separate boundary from host organization and should be treated separately.
+
+## Capability Tiers
+
+### Tier 1: read
 
 - `health.check`
 - `fs.list`
 - `fs.search`
 - `fs.read_meta`
 
-### Tier 2
+### Tier 2: organize
 
 - `fs.mkdir`
 - `fs.move`
 
-### Tier 3
+### Tier 3: export
 
 - `fs.zip_for_export`
 - `fs.stage_for_telegram`
-- `browser.tabs.inspect`
+- `display.screenshot`
 
-## Publishable v1 choice
+### Tier 4: higher-risk admin
 
-For v1, the documented deployment mode is:
+- allowed-root changes
+- host discovery outside allowed roots
+- monitor power
 
-- Windows host
-- WSL-backed bridge runtime
+## Why This Matters
 
-That mode is publishable because it is explicit, documented, and does not depend on OpenClaw core drift.
+If the bridge did not exist, users would still want host access. The likely fallback would be broad shell execution or ad hoc scripts. This repository uses the bridge to make host access explicit, typed, and auditable instead.

@@ -1,118 +1,107 @@
 # pc-control-bridge
 
-`pc-control-bridge` is a host-side bridge for OpenClaw `pc-control`.
+`pc-control-bridge` is the host-side enforcement layer for OpenClaw host control.
 
-Use it when:
+It exists for one reason: OpenClaw can run in an isolated container or VM, but users still want controlled access to the real host PC. The bridge provides that path without turning the assistant runtime itself into the host trust boundary.
 
-- OpenClaw runs in an isolated container or VM
-- you want OpenClaw to work with your real Windows files
-- you do not want to patch OpenClaw core just to reach the host PC
+## What This Repository Is
 
-Current v1 focus:
+This repository implements:
 
-- file listing
-- file search
+- host-side operation dispatch
+- permission classes
+- allowed-root enforcement
+- export staging
+- audit logging
+- Windows and WSL-oriented runtime workflows
+
+It is not:
+
+- an OpenClaw core patch
+- a generic remote shell
+- a replacement for the OpenClaw runtime
+
+## Architecture Role
+
+```mermaid
+flowchart LR
+    Gateway[OpenClaw runtime]
+    Plugin[pc-control plugin]
+    Bridge[pc-control-bridge]
+    Host[Windows host]
+
+    Gateway --> Plugin --> Bridge --> Host
+```
+
+The bridge is the place where host access becomes real. That is why it owns policy and audit.
+
+## Why The Bridge Exists
+
+Without a separate host bridge, most local-assistant setups end up doing one of these:
+
+- broad shell execution from the assistant runtime
+- unstructured scripts with no stable policy boundary
+- channel-specific hacks that reach directly into the host
+
+This bridge exists to avoid those failure modes.
+
+## Current Scope
+
+Current main operation areas:
+
+- health and host summary
+- file listing and search
 - metadata inspection
-- folder organization
-- silent task-owned startup on Windows with a WSL-backed bridge
+- folder creation and move/rename
+- export staging for Telegram
+- desktop screenshots
+- monitor power control
 
-## Supported mode
+## Permission Model
 
-This repository currently documents one publishable v1 mode:
+The bridge groups operations into explicit permission classes:
+
+- `read`
+- `organize`
+- `export`
+- `browser_inspect`
+- `admin_high_risk`
+
+That separation matters because:
+
+- read-only host insight should stay easy
+- mutating file actions should stay deliberate
+- export should be separate from ordinary organization
+- high-risk admin changes should be gated more tightly
+
+## Supported Mode
+
+The main documented mode in this repo is:
 
 - Windows host
 - WSL2-backed bridge runtime
-- isolated OpenClaw runtime
-- OpenClaw plugin + skill on the OpenClaw side
+- OpenClaw running separately in an isolated VM or container
 
-This is an extension pattern, not an OpenClaw core patch.
+This is not a hidden workaround. It is the current supported operating model of this repository.
 
-## Quick Start
+## Start Here
 
-1. Install WSL2 and a distro such as `Ubuntu`.
-2. Install Node inside WSL.
-3. Copy `config/policy.wsl.example.json` to a local policy file and replace:
-   - `<windows-user>`
-   - `<wsl-user>`
-   - `<project-dir>`
-4. Verify the bridge once in WSL:
+Read in this order:
+
+1. [docs/architecture.md](/home/mfshaf7/projects/pc-control-bridge/docs/architecture.md)
+2. [docs/security-model.md](/home/mfshaf7/projects/pc-control-bridge/docs/security-model.md)
+3. [docs/wsl-mode.md](/home/mfshaf7/projects/pc-control-bridge/docs/wsl-mode.md)
+4. [docs/install.md](/home/mfshaf7/projects/pc-control-bridge/docs/install.md)
+
+## Tests
+
+Run:
 
 ```bash
-export PC_CONTROL_BRIDGE_CONFIG=/path/to/policy.local.json
-node src/index.mjs
+node --test test/*.test.mjs
 ```
 
-5. After the foreground check passes, switch to the hidden startup path with the scripts under `scripts/`.
+## Related Repositories
 
-6. In OpenClaw, enable the `pc-control` plugin with:
-   - `bridgeUrl: "http://host.docker.internal:48721"`
-   - `authTokenEnv: "OPENCLAW_GATEWAY_TOKEN"`
-7. Start with read-only mode.
-8. Turn on organize mode later if you want `mkdir` and `move`.
-
-## What You Install
-
-You need three pieces:
-
-1. `pc-control-bridge`
-   - this repo
-   - runs on the Windows host through WSL
-
-2. `pc-control` OpenClaw plugin
-   - exposes typed tools to OpenClaw
-
-3. `pc-control` skill
-   - gives the model the workflow and usage guidance
-
-## What Works Today
-
-- read-only host access: working
-- organize actions: working
-- export flow: not complete
-- browser inspection: not complete
-
-## Telegram Usage
-
-You should not need to say `use pc-control` for obvious host-PC requests.
-
-Natural read-only examples:
-
-- `check my downloads folder`
-- `what's in my desktop`
-- `find OpenClaw files in my downloads`
-- `show details for C:\Users\me\Downloads\report.docx`
-- `what browser tabs do I have open`
-
-Natural write examples:
-
-- `create a folder called Test in my downloads and confirm it`
-- `move report.docx into my For Review folder and confirm it`
-
-Recommended behavior:
-
-- ordinary host-file and browser questions should route to `pc-control` automatically
-- writes should still be explicit and confirmation-gated
-- container or VM questions should stay outside `pc-control` unless the user clearly means the host PC
-
-## Recommended First Config
-
-Start with:
-
-- `read: true`
-- `organize: false`
-- `export: false`
-- `browser_inspect: false`
-
-Then enable organize mode only after read-only calls are working.
-
-## Docs
-
-- [Architecture](docs/architecture.md)
-- [WSL Mode](docs/wsl-mode.md)
-- [Install Guide](docs/install.md)
-- [Security Model](docs/security-model.md)
-- [Known Limitations](docs/limitations.md)
-
-## Important limitation
-
-Windows silent persistence is supported in this repo, but should still be validated once per environment after install and after a reboot/logon cycle.
+- OpenClaw-side adapter plugin: `pc-control-openclaw-plugin`
+- channel-side deterministic Telegram behavior: `telegram-override-plugin`

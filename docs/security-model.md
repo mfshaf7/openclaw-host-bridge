@@ -1,14 +1,16 @@
 # Security Model
 
-## Design principles
+## Design Principles
 
 - OpenClaw stays isolated
 - host access is explicit
-- the bridge is the enforcement point
-- read-only should be low-friction
-- higher-risk actions require stronger intent
+- the bridge is the host enforcement point
+- read-only actions should be easy to use
+- higher-risk actions should require stronger intent
 
-## Permission classes
+## Permission Classes
+
+The bridge separates operations into explicit classes:
 
 - `read`
 - `organize`
@@ -16,30 +18,63 @@
 - `browser_inspect`
 - `admin_high_risk`
 
-## Path policy
+This separation prevents one “host access” switch from granting everything.
 
-Use allowlisted roots only.
+## Path Policy
 
-Typical roots:
+The bridge should operate on allowlisted roots only.
+
+Typical allowed roots are:
 
 - Desktop
 - Documents
 - Downloads
+- Music
 
-Do not allow broad system roots by default.
+Avoid broad system roots by default.
 
-## Mutating operations
+## Organize Actions
 
-Mutating operations should require:
+Mutating file operations should require all of the following:
 
 - bridge organize permission enabled
-- plugin write mode enabled
-- explicit `confirm: true` on the tool call
+- OpenClaw-side write mode enabled
+- explicit confirmation on the requesting side
 
-## Export operations
+## Export Actions
 
-Export should remain disabled by default and treated separately from organize actions.
+Export should stay separate from ordinary file organization.
 
-## Browser operations
+Why:
 
-Browser tab listing can be lower-risk than full inspection. Keep deep inspection disabled by default.
+- organization changes host state
+- export moves host data across a delivery boundary
+
+Those are not the same risk class.
+
+## Browser Actions
+
+Browser tab listing can be lower risk than deep inspection.
+
+Keep deep inspection disabled by default unless there is a real need for it.
+
+## Admin-High-Risk Actions
+
+These are actions such as:
+
+- changing allowed roots
+- host discovery outside current allowed roots
+- monitor power control
+
+They should be treated more carefully than ordinary read-only requests.
+
+## Audit
+
+The bridge should always be able to answer:
+
+- who requested the action
+- which operation ran
+- what arguments were used
+- whether it succeeded
+
+That is why audit belongs to the bridge instead of to the channel layer alone.

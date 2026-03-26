@@ -1,42 +1,45 @@
 # WSL Mode
 
-## Supported mode
+## Purpose
 
-This repository currently supports:
+This document explains the current WSL-backed operating mode of `pc-control-bridge`.
+
+## Supported Shape
+
+This mode assumes:
 
 - Windows host
-- WSL2 distro such as `Ubuntu`
+- WSL2 installed and working
+- bridge runtime inside WSL
 - OpenClaw running separately in an isolated container or VM
 
-## Why this mode exists
+## Why This Mode Exists
 
-OpenClaw running inside a container does not automatically gain access to the real Windows host. The bridge provides that host path without moving OpenClaw itself onto the host.
+OpenClaw running in a container or VM does not automatically gain controlled access to the Windows host. The bridge provides that host path without moving the runtime onto the workstation itself.
 
-## What this mode requires
+## Runtime Model
 
-- WSL2 installed and working
-- Node installed inside WSL
-- access to the local OpenClaw state/config file
-- container-to-host connectivity through `host.docker.internal`
+- the bridge process runs inside WSL
+- Windows files are accessed through `/mnt/<drive>/...`
+- the isolated runtime reaches the bridge over HTTP on the host side
+- startup/persistence is handled through the provided scripts and launcher path
 
-## Runtime model
-
-- the bridge runs inside WSL
-- the bridge sees Windows files through `/mnt/c/...`
-- OpenClaw reaches the bridge over HTTP on the host
-- recommended ownership is a hidden Windows Scheduled Task that launches the WSL bridge
-- the WSL launcher should reject duplicate starts so repeated task triggers do not race on the port
-- natural Telegram phrasing such as `check my downloads folder` should resolve to host-PC bridge operations, not container-local inspection
-
-## What is configurable
+## What Is Configurable
 
 - WSL distro name
 - bridge root path
-- bridge policy path
-- Node binary path
+- policy path
+- Node path
 - allowed roots
-- staging/audit paths
+- staging directory
+- audit directory
 
-## What is not yet native
+## What This Mode Is Not
 
-This is not a Windows-native service build yet. It is a WSL-backed host bridge mode.
+It is not:
+
+- a native Windows service build
+- a zero-prerequisite host-control path
+- a direct replacement for OpenClaw runtime isolation
+
+It is a practical bridge mode for Windows + WSL environments.

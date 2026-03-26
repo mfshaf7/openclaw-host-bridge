@@ -15,4 +15,4 @@
 
 ## Operational note
 
-This repository is publishable as a v1 pattern because the mode is explicit and documented, but some startup behavior is still environment-sensitive and should be described honestly in release notes.
+This repository is usable as a documented v1 mode, but some startup behavior is still environment-sensitive and should be described honestly in operator notes.
