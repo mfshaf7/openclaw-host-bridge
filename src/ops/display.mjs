@@ -41,6 +41,20 @@ async function allocateScreenshotPath(config, requestedName) {
   return path.join(config.stagingDir, `${base}-${timestamp}-${suffix}${ext}`);
 }
 
+async function allocateScreenshotPaths(config, requestedName, count) {
+  const parsed = path.parse(
+    typeof requestedName === "string" && requestedName.trim() ? requestedName.trim() : "desktop-screenshot.png",
+  );
+  const base = parsed.name || "desktop-screenshot";
+  const ext = parsed.ext || ".png";
+  const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+  const suffix = Math.random().toString(36).slice(2, 8);
+  await fs.mkdir(config.stagingDir, { recursive: true });
+  return Array.from({ length: count }, (_, index) =>
+    path.join(config.stagingDir, `${base}-display-${index + 1}-${timestamp}-${suffix}${ext}`),
+  );
+}
+
 export async function monitorPower(_config, args) {
   const action = typeof args?.action === "string" ? args.action.trim().toLowerCase() : "";
   if (action !== "off" && action !== "on") {
@@ -72,9 +86,22 @@ Start-Sleep -Milliseconds 100
 }
 
 export async function captureScreenshot(config, args) {
-  const stagedPath = await allocateScreenshotPath(config, args?.file_name);
-  const stagedWindowsPath = toWindowsPath(stagedPath);
-  if (!stagedWindowsPath) {
+  const probeScript = `
+Add-Type -AssemblyName System.Windows.Forms;
+[System.Windows.Forms.Screen]::AllScreens.Count
+`;
+  const { stdout: countStdout } = await execFileAsync(
+    "powershell.exe",
+    ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", probeScript],
+    { timeout: 5000, maxBuffer: 256 * 1024 },
+  );
+  const displayCount = Math.max(1, Number.parseInt(String(countStdout || "").trim(), 10) || 1);
+  const stagedPaths =
+    displayCount === 1
+      ? [await allocateScreenshotPath(config, args?.file_name)]
+      : await allocateScreenshotPaths(config, args?.file_name, displayCount);
+  const stagedWindowsPaths = stagedPaths.map((entry) => toWindowsPath(entry));
+  if (stagedWindowsPaths.some((entry) => !entry)) {
     const err = new Error("Unable to translate staging path for screenshot export");
     err.code = "invalid_argument";
     throw err;
@@ -83,26 +110,32 @@ export async function captureScreenshot(config, args) {
   const script = `
 Add-Type -AssemblyName System.Windows.Forms;
 Add-Type -AssemblyName System.Drawing;
-$bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds;
-$bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height;
-$graphics = [System.Drawing.Graphics]::FromImage($bitmap);
-$graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size);
-$bitmap.Save('${stagedWindowsPath.replace(/'/g, "''")}', [System.Drawing.Imaging.ImageFormat]::Png);
-$graphics.Dispose();
-$bitmap.Dispose();
+$screens = [System.Windows.Forms.Screen]::AllScreens;
+$targets = @(
+${stagedWindowsPaths.map((entry) => `  '${entry.replace(/'/g, "''")}'`).join(",\n")}
+);
+for ($i = 0; $i -lt $screens.Length; $i++) {
+  $screen = $screens[$i];
+  $target = $targets[$i];
+  $bounds = $screen.Bounds;
+  $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height;
+  $graphics = [System.Drawing.Graphics]::FromImage($bitmap);
+  $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size);
+  $bitmap.Save($target, [System.Drawing.Imaging.ImageFormat]::Png);
+  $graphics.Dispose();
+  $bitmap.Dispose();
+}
 `;
   await runPowerShell(script);
-  const stat = await fs.stat(stagedPath);
+  const stats = await Promise.all(stagedPaths.map((entry) => fs.stat(entry)));
   return {
-    path: stagedPath,
-    paths: [stagedPath],
-    file_name: path.basename(stagedPath),
-    size: stat.size,
-    displays: [
-      {
-        path: stagedPath,
-        primary: true,
-      },
-    ],
+    path: stagedPaths[0],
+    paths: stagedPaths,
+    file_name: path.basename(stagedPaths[0]),
+    size: stats.reduce((sum, stat) => sum + stat.size, 0),
+    displays: stagedPaths.map((entry, index) => ({
+      path: entry,
+      primary: index === 0,
+    })),
   };
 }
