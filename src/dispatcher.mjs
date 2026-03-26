@@ -7,7 +7,7 @@ import {
   listAllowedRoots,
   removeAllowedRoot,
 } from "./ops/admin.mjs";
-import { monitorPower } from "./ops/display.mjs";
+import { captureScreenshot, monitorPower } from "./ops/display.mjs";
 import {
   listDirectory,
   makeDirectory,
@@ -27,6 +27,7 @@ const HANDLERS = {
   "config.host_discovery.overview": hostDiscoveryOverview,
   "config.host_discovery.browse": hostDiscoveryBrowse,
   "display.monitor_power": monitorPower,
+  "display.screenshot": captureScreenshot,
   "fs.list": listDirectory,
   "fs.search": searchFiles,
   "fs.read_meta": readMetadata,

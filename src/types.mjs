@@ -10,7 +10,7 @@ export const READ_OPERATIONS = new Set([
 ]);
 
 export const ORGANIZE_OPERATIONS = new Set(["fs.mkdir", "fs.move"]);
-export const EXPORT_OPERATIONS = new Set(["fs.zip_for_export", "fs.stage_for_telegram"]);
+export const EXPORT_OPERATIONS = new Set(["fs.zip_for_export", "fs.stage_for_telegram", "display.screenshot"]);
 export const BROWSER_INSPECT_OPERATIONS = new Set(["browser.tabs.inspect"]);
 export const ADMIN_HIGH_RISK_OPERATIONS = new Set([
   "config.allowed_roots.add",
