@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { searchFiles, stageForTelegram } from "../src/ops/fs.mjs";
+import { quarantinePath, searchFiles, stageForTelegram } from "../src/ops/fs.mjs";
 
 test("searchFiles can return matching directories", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
@@ -73,4 +73,48 @@ test("stageForTelegram rejects directories", async () => {
       ),
     /regular files/,
   );
+});
+
+test("quarantinePath moves an allowed path into the quarantine directory", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
+  const allowedRoot = path.join(root, "Downloads");
+  const quarantineDir = path.join(root, "Quarantine");
+  await fs.mkdir(allowedRoot, { recursive: true });
+  const sourcePath = path.join(allowedRoot, "old-folder");
+  await fs.mkdir(sourcePath, { recursive: true });
+
+  const result = await quarantinePath(
+    {
+      allowedRoots: [allowedRoot],
+      quarantineDir,
+    },
+    { path: sourcePath },
+  );
+
+  assert.equal(result.source, sourcePath);
+  assert.equal(result.quarantined, true);
+  assert.match(result.destination, new RegExp(`^${quarantineDir.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+  await assert.rejects(() => fs.stat(sourcePath), /ENOENT/);
+  const stat = await fs.stat(result.destination);
+  assert.equal(stat.isDirectory(), true);
+});
+
+test("quarantinePath can cross filesystems by copy-and-remove fallback", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
+  const allowedRoot = path.join(root, "Downloads");
+  const quarantineDir = path.join(os.tmpdir(), `pc-control-quarantine-${Date.now()}`);
+  await fs.mkdir(allowedRoot, { recursive: true });
+  const sourcePath = path.join(allowedRoot, "note.txt");
+  await fs.writeFile(sourcePath, "hello", "utf8");
+
+  const result = await quarantinePath(
+    {
+      allowedRoots: [allowedRoot],
+      quarantineDir,
+    },
+    { path: sourcePath },
+  );
+
+  assert.equal(await fs.readFile(result.destination, "utf8"), "hello");
+  await assert.rejects(() => fs.stat(sourcePath), /ENOENT/);
 });

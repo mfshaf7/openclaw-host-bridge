@@ -79,6 +79,13 @@ async function runWindowsMoveFallback(source, destination) {
   );
 }
 
+async function moveAcrossFilesystems(source, destination) {
+  const stat = await fs.stat(source);
+  await fs.mkdir(path.dirname(destination), { recursive: true });
+  await fs.cp(source, destination, { recursive: stat.isDirectory(), force: false, errorOnExist: true });
+  await fs.rm(source, { recursive: true, force: false });
+}
+
 async function walk(rootPath, pattern, results, limit, options) {
   if (results.length >= limit || isProtectedWindowsPath(rootPath)) {
     return;
@@ -237,6 +244,15 @@ async function allocateStagingPath(config, fileName) {
   return stagedPath;
 }
 
+async function allocateQuarantinePath(config, sourcePath) {
+  const { base, ext } = splitName(path.basename(sourcePath));
+  const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+  const suffix = Math.random().toString(36).slice(2, 8);
+  const quarantinedFileName = `${base}-${timestamp}-${suffix}${ext}`;
+  await fs.mkdir(config.quarantineDir, { recursive: true });
+  return path.join(config.quarantineDir, quarantinedFileName);
+}
+
 export async function stageForTelegram(config, args) {
   const sourcePath = resolveAllowedPath(config, args?.path);
   if (isProtectedWindowsPath(sourcePath)) {
@@ -264,4 +280,27 @@ export async function stageForTelegram(config, args) {
     size: stat.size,
     staged: true,
   };
+}
+
+export async function quarantinePath(config, args) {
+  const source = resolveAllowedPath(config, args?.path);
+  if (isProtectedWindowsPath(source)) {
+    const err = new Error("Protected filesystem paths cannot be quarantined");
+    err.code = "policy_denied";
+    throw err;
+  }
+  const destination = await allocateQuarantinePath(config, source);
+  try {
+    await fs.rename(source, destination);
+  } catch (error) {
+    if (error?.code === "EXDEV") {
+      await moveAcrossFilesystems(source, destination);
+      return { source, destination, quarantined: true };
+    }
+    if (!canUseWindowsFallback(source, destination, error)) {
+      throw error;
+    }
+    await runWindowsMoveFallback(source, destination);
+  }
+  return { source, destination, quarantined: true };
 }

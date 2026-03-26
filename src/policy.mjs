@@ -5,6 +5,7 @@ import { permissionForOperation } from "./types.mjs";
 export async function ensureDirectories(config) {
   await fs.mkdir(config.auditDir, { recursive: true });
   await fs.mkdir(config.stagingDir, { recursive: true });
+  await fs.mkdir(config.quarantineDir, { recursive: true });
 }
 
 export function requirePermission(config, operation) {

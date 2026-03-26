@@ -50,6 +50,9 @@ export async function loadConfig() {
     throw new Error("Config must define at least one allowed root");
   }
   const stagingDir = resolveAllowedRoot(raw?.staging_dir || "Downloads\\OpenClaw-Staging");
+  const quarantineDir = raw?.quarantine_dir
+    ? resolveAllowedRoot(raw.quarantine_dir)
+    : path.join(path.dirname(stagingDir), "pc-control-quarantine");
   const auditDir = path.resolve(
     normalizeUserPath(
       expandEnv(raw?.audit?.dir || "%LOCALAPPDATA%\\OpenClaw\\pc-control-bridge\\audit"),
@@ -67,6 +70,7 @@ export async function loadConfig() {
     authToken,
     allowedRoots,
     stagingDir,
+    quarantineDir,
     auditDir,
     permissions: {
       read: raw?.permissions?.read === true,
