@@ -84,6 +84,17 @@ The main documented mode in this repo is:
 
 This is not a hidden workaround. It is the current supported operating model of this repository.
 
+## Relationship To The Deployment Workspace
+
+This repository is the canonical bridge source tree.
+
+In the isolated deployment model, the deployment workspace may also contain a small `pc-control-bridge/` directory for documentation and integration references. Operators should still treat this standalone repository as the runnable bridge source for:
+
+- bridge scripts
+- bridge runtime code
+- bridge config examples
+- bridge tests
+
 ## Start Here
 
 Read in this order:
@@ -104,4 +115,4 @@ node --test test/*.test.mjs
 ## Related Repositories
 
 - OpenClaw-side adapter plugin: `pc-control-openclaw-plugin`
-- channel-side deterministic Telegram behavior: `telegram-override-plugin`
+- channel-side deterministic Telegram behavior: `openclaw-telegram-enhanced`
