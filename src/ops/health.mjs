@@ -134,24 +134,62 @@ async function sampleCpuUtilizationPercent() {
 async function getWindowsPanelInfo() {
   const script = [
     "$ErrorActionPreference = 'Stop'",
+    "Add-Type -AssemblyName System.Windows.Forms",
     "$cpu = Get-CimInstance Win32_Processor | Select-Object -First 1 Name,CurrentClockSpeed",
-    "$gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1 Name,AdapterRAM,CurrentRefreshRate,CurrentHorizontalResolution,CurrentVerticalResolution",
+    "$video = Get-CimInstance Win32_VideoController | Where-Object { $_.CurrentHorizontalResolution -or $_.CurrentRefreshRate } | Select-Object -First 1 Name,AdapterRAM,CurrentRefreshRate,CurrentHorizontalResolution,CurrentVerticalResolution",
+    "if (-not $video) { $video = Get-CimInstance Win32_VideoController | Select-Object -First 1 Name,AdapterRAM,CurrentRefreshRate,CurrentHorizontalResolution,CurrentVerticalResolution }",
     "$memClock = (Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property ConfiguredClockSpeed -Maximum).Maximum",
-    "$publicIp = $null",
-    "foreach ($url in @('https://ifconfig.me/ip','https://api.ipify.org')) {",
-    "  try {",
-    "    $value = (Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 2).Content.Trim()",
-    "    if ($value) { $publicIp = $value; break }",
-    "  } catch {}",
-    "}",
+    "$bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds",
     "@{",
     "  cpu = @{ model = $cpu.Name; clockMhz = $cpu.CurrentClockSpeed }",
-    "  gpu = @{ name = $gpu.Name; vramTotalBytes = $gpu.AdapterRAM }",
+    "  gpu = @{ name = $video.Name; vramTotalBytes = $video.AdapterRAM }",
     "  ram = @{ clockMhz = $memClock }",
-    "  display = @{ width = $gpu.CurrentHorizontalResolution; height = $gpu.CurrentVerticalResolution; refreshHz = $gpu.CurrentRefreshRate }",
-    "  publicIp = if ($publicIp) { @{ address = $publicIp; ok = $true; provider = 'windows:web' } } else { @{ ok = $false } }",
+    "  display = @{ width = $bounds.Width; height = $bounds.Height; refreshHz = $video.CurrentRefreshRate }",
     "} | ConvertTo-Json -Depth 6 -Compress",
-  ].join("; ");
+  ].join("\n");
+  return await execPowerShellJson(script, 5000);
+}
+
+async function getWindowsPublicIp() {
+  return await execPowerShellJson(
+    [
+      "$ErrorActionPreference = 'Stop'",
+      "$publicIp = $null",
+      "foreach ($url in @('http://ifconfig.me/ip','https://api.ipify.org')) {",
+      "  try {",
+      "    $value = (Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 3).Content.Trim()",
+      "    if ($value) { $publicIp = $value; break }",
+      "  } catch {}",
+      "}",
+      "if ($publicIp) { @{ ok = $true; address = $publicIp; provider = 'windows:web' } | ConvertTo-Json -Compress }",
+      "else { @{ ok = $false } | ConvertTo-Json -Compress }",
+    ].join("\n"),
+    5000,
+  );
+}
+
+async function getWindowsNvidiaGpuInfo() {
+  const script = [
+    "$ErrorActionPreference = 'Stop'",
+    "$paths = @(",
+    "  \"$env:ProgramFiles\\NVIDIA Corporation\\NVSMI\\nvidia-smi.exe\",",
+    "  \"$env:SystemRoot\\System32\\nvidia-smi.exe\"",
+    ")",
+    "$exe = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1",
+    "if (-not $exe) { @{ ok = $false; error = 'nvidia-smi not found' } | ConvertTo-Json -Compress; exit 0 }",
+    "$line = & $exe --query-gpu=name,temperature.gpu,utilization.gpu,memory.used,memory.total,clocks.current.graphics --format=csv,noheader,nounits | Select-Object -First 1",
+    "if (-not $line) { @{ ok = $false; error = 'no gpu rows' } | ConvertTo-Json -Compress; exit 0 }",
+    "$parts = $line.Split(',') | ForEach-Object { $_.Trim() }",
+    "@{",
+    "  ok = $true",
+    "  name = $parts[0]",
+    "  temperatureC = [int]$parts[1]",
+    "  utilizationPercent = [int]$parts[2]",
+    "  vramUsedMB = [int]$parts[3]",
+    "  vramTotalMB = [int]$parts[4]",
+    "  clockMhz = [int]$parts[5]",
+    "} | ConvertTo-Json -Compress",
+  ].join("\n");
   return await execPowerShellJson(script, 5000);
 }
 
@@ -169,20 +207,22 @@ async function getOllamaStatus() {
       "} catch {",
       "  @{ ok = $false; error = $_.Exception.Message } | ConvertTo-Json -Compress",
       "}",
-    ].join("; "),
+    ].join("\n"),
     4000,
   );
   return windowsResult || localResult;
 }
 
 export async function healthCheck(config) {
-  const [allowedRoots, stagingDir, auditDir, cpuUtilizationPercent, windowsPanel, gatewayState, ollama] =
+  const [allowedRoots, stagingDir, auditDir, cpuUtilizationPercent, windowsPanel, windowsPublicIp, windowsGpu, gatewayState, ollama] =
     await Promise.all([
       Promise.all(config.allowedRoots.map((root) => pathState(root))),
       pathState(config.stagingDir),
       pathState(config.auditDir),
       sampleCpuUtilizationPercent(),
       getWindowsPanelInfo(),
+      getWindowsPublicIp(),
+      getWindowsNvidiaGpuInfo(),
       execDockerInspect(),
       getOllamaStatus(),
     ]);
@@ -204,12 +244,24 @@ export async function healthCheck(config) {
             : null,
     },
     gpu:
-      windowsPanel?.gpu && typeof windowsPanel.gpu === "object"
+      (windowsGpu?.ok === true || (windowsPanel?.gpu && typeof windowsPanel.gpu === "object"))
         ? {
-            name: windowsPanel.gpu.name || null,
-            vramTotalBytes: Number.isFinite(Number(windowsPanel.gpu.vramTotalBytes))
-              ? Number(windowsPanel.gpu.vramTotalBytes)
+            name: windowsGpu?.name || windowsPanel?.gpu?.name || null,
+            utilizationPercent: Number.isFinite(Number(windowsGpu?.utilizationPercent))
+              ? Number(windowsGpu.utilizationPercent)
               : null,
+            temperatureC: Number.isFinite(Number(windowsGpu?.temperatureC))
+              ? Number(windowsGpu.temperatureC)
+              : null,
+            vramUsedBytes: Number.isFinite(Number(windowsGpu?.vramUsedMB))
+              ? Number(windowsGpu.vramUsedMB) * 1024 * 1024
+              : null,
+            vramTotalBytes: Number.isFinite(Number(windowsGpu?.vramTotalMB))
+              ? Number(windowsGpu.vramTotalMB) * 1024 * 1024
+              : Number.isFinite(Number(windowsPanel?.gpu?.vramTotalBytes))
+                ? Number(windowsPanel.gpu.vramTotalBytes)
+                : null,
+            clockMhz: Number.isFinite(Number(windowsGpu?.clockMhz)) ? Number(windowsGpu.clockMhz) : null,
           }
         : undefined,
     ram: {
@@ -233,8 +285,8 @@ export async function healthCheck(config) {
           }
         : undefined,
     publicIp:
-      windowsPanel?.publicIp && typeof windowsPanel.publicIp === "object"
-        ? windowsPanel.publicIp
+      windowsPublicIp && typeof windowsPublicIp === "object"
+        ? windowsPublicIp
         : undefined,
   };
 
