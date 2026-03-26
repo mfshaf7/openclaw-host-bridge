@@ -4,7 +4,33 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { stageForTelegram } from "../src/ops/fs.mjs";
+import { searchFiles, stageForTelegram } from "../src/ops/fs.mjs";
+
+test("searchFiles can return matching directories", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
+  const allowedRoot = path.join(root, "Music");
+  const targetDir = path.join(allowedRoot, "Spotify-Local");
+  await fs.mkdir(targetDir, { recursive: true });
+
+  const result = await searchFiles(
+    {
+      allowedRoots: [allowedRoot],
+      limits: { searchMaxResults: 20 },
+    },
+    {
+      root: allowedRoot,
+      pattern: "*spotify-local*",
+      includeFiles: false,
+      includeDirectories: true,
+    },
+  );
+
+  assert.equal(result.root, allowedRoot);
+  assert.equal(result.pattern, "*spotify-local*");
+  assert.equal(result.results.length, 1);
+  assert.equal(result.results[0].path, targetDir);
+  assert.equal(result.results[0].type, "directory");
+});
 
 test("stageForTelegram copies an allowed file into the staging directory", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));

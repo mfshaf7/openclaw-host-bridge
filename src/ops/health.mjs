@@ -1,38 +1,315 @@
 import os from "node:os";
 import fs from "node:fs/promises";
+import { execFile as execFileCallback } from "node:child_process";
+import { promisify } from "node:util";
 
-async function safeRead(commandOutput) {
+const execFile = promisify(execFileCallback);
+
+function isWsl() {
+  return Boolean(process.env.WSL_DISTRO_NAME) || /microsoft/i.test(os.release());
+}
+
+async function pathState(targetPath) {
   try {
-    return await commandOutput();
-  } catch (error) {
-    return { error: String(error?.message || error) };
+    const stats = await fs.stat(targetPath);
+    return {
+      path: targetPath,
+      exists: true,
+      kind: stats.isDirectory() ? "directory" : stats.isFile() ? "file" : "other",
+    };
+  } catch {
+    return {
+      path: targetPath,
+      exists: false,
+    };
   }
 }
 
-export async function healthCheck(config) {
-  const disks = await Promise.all(
-    config.allowedRoots.map(async (root) => {
-      const stats = await fs.stat(root).catch(() => null);
-      return {
-        path: root,
-        exists: stats !== null,
-      };
-    }),
+async function safeFetchJson(url, timeoutMs = 1500) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { accept: "application/json, text/plain;q=0.9, */*;q=0.1" },
+    });
+    const contentType = response.headers.get("content-type") || "";
+    const bodyText = await response.text();
+    let body = bodyText;
+    if (contentType.includes("application/json")) {
+      try {
+        body = JSON.parse(bodyText);
+      } catch {
+        body = bodyText;
+      }
+    }
+    return {
+      ok: response.ok,
+      status: response.status,
+      url,
+      body,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      url,
+      error: String(error?.message || error),
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function execPowerShellJson(script, timeoutMs = 3000) {
+  try {
+    const { stdout } = await execFile(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        script,
+      ],
+      { timeout: timeoutMs, maxBuffer: 1024 * 1024 },
+    );
+    const trimmed = String(stdout || "").trim();
+    if (!trimmed) {
+      return null;
+    }
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+
+async function execDockerInspect() {
+  try {
+    const { stdout } = await execFile(
+      "docker",
+      [
+        "inspect",
+        "upstream-openclaw-openclaw-gateway-1",
+        "--format",
+        "{{json .State}}",
+      ],
+      { timeout: 2500, maxBuffer: 256 * 1024 },
+    );
+    const trimmed = String(stdout || "").trim();
+    return trimmed ? JSON.parse(trimmed) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function sampleCpuUtilizationPercent() {
+  const first = os.cpus();
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  const second = os.cpus();
+  if (!first.length || first.length !== second.length) {
+    return null;
+  }
+  let idleDelta = 0;
+  let totalDelta = 0;
+  for (let index = 0; index < first.length; index += 1) {
+    const a = first[index].times;
+    const b = second[index].times;
+    const idle = b.idle - a.idle;
+    const total =
+      b.user -
+      a.user +
+      (b.nice - a.nice) +
+      (b.sys - a.sys) +
+      (b.irq - a.irq) +
+      idle;
+    idleDelta += idle;
+    totalDelta += total;
+  }
+  if (totalDelta <= 0) {
+    return null;
+  }
+  return Math.max(0, Math.min(100, Math.round(((totalDelta - idleDelta) / totalDelta) * 100)));
+}
+
+async function getWindowsPanelInfo() {
+  const script = [
+    "$ErrorActionPreference = 'Stop'",
+    "$cpu = Get-CimInstance Win32_Processor | Select-Object -First 1 Name,CurrentClockSpeed",
+    "$gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1 Name,AdapterRAM,CurrentRefreshRate,CurrentHorizontalResolution,CurrentVerticalResolution",
+    "$memClock = (Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property ConfiguredClockSpeed -Maximum).Maximum",
+    "$publicIp = $null",
+    "foreach ($url in @('https://ifconfig.me/ip','https://api.ipify.org')) {",
+    "  try {",
+    "    $value = (Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 2).Content.Trim()",
+    "    if ($value) { $publicIp = $value; break }",
+    "  } catch {}",
+    "}",
+    "@{",
+    "  cpu = @{ model = $cpu.Name; clockMhz = $cpu.CurrentClockSpeed }",
+    "  gpu = @{ name = $gpu.Name; vramTotalBytes = $gpu.AdapterRAM }",
+    "  ram = @{ clockMhz = $memClock }",
+    "  display = @{ width = $gpu.CurrentHorizontalResolution; height = $gpu.CurrentVerticalResolution; refreshHz = $gpu.CurrentRefreshRate }",
+    "  publicIp = if ($publicIp) { @{ address = $publicIp; ok = $true; provider = 'windows:web' } } else { @{ ok = $false } }",
+    "} | ConvertTo-Json -Depth 6 -Compress",
+  ].join("; ");
+  return await execPowerShellJson(script, 5000);
+}
+
+async function getOllamaStatus() {
+  const localResult = await safeFetchJson("http://127.0.0.1:11434/api/tags", 1200);
+  if (localResult.ok) {
+    return localResult;
+  }
+  const windowsResult = await execPowerShellJson(
+    [
+      "$ErrorActionPreference = 'Stop'",
+      "try {",
+      "  $response = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:11434/api/tags' -TimeoutSec 2",
+      "  @{ ok = $true; status = [int]$response.StatusCode; body = ($response.Content | ConvertFrom-Json) } | ConvertTo-Json -Depth 8 -Compress",
+      "} catch {",
+      "  @{ ok = $false; error = $_.Exception.Message } | ConvertTo-Json -Compress",
+      "}",
+    ].join("; "),
+    4000,
   );
-  return {
+  return windowsResult || localResult;
+}
+
+export async function healthCheck(config) {
+  const [allowedRoots, stagingDir, auditDir, cpuUtilizationPercent, windowsPanel, gatewayState, ollama] =
+    await Promise.all([
+      Promise.all(config.allowedRoots.map((root) => pathState(root))),
+      pathState(config.stagingDir),
+      pathState(config.auditDir),
+      sampleCpuUtilizationPercent(),
+      getWindowsPanelInfo(),
+      execDockerInspect(),
+      getOllamaStatus(),
+    ]);
+
+  const cpuInfo = os.cpus();
+  const totalBytes = os.totalmem();
+  const freeBytes = os.freemem();
+  const usedBytes = totalBytes - freeBytes;
+  const firstCpu = cpuInfo[0] || null;
+  const panel = {
+    cpu: {
+      model: windowsPanel?.cpu?.model || firstCpu?.model || null,
+      utilizationPercent: cpuUtilizationPercent,
+      clockMhz:
+        Number.isFinite(Number(windowsPanel?.cpu?.clockMhz))
+          ? Number(windowsPanel.cpu.clockMhz)
+          : Number.isFinite(Number(firstCpu?.speed))
+            ? Number(firstCpu.speed)
+            : null,
+    },
+    gpu:
+      windowsPanel?.gpu && typeof windowsPanel.gpu === "object"
+        ? {
+            name: windowsPanel.gpu.name || null,
+            vramTotalBytes: Number.isFinite(Number(windowsPanel.gpu.vramTotalBytes))
+              ? Number(windowsPanel.gpu.vramTotalBytes)
+              : null,
+          }
+        : undefined,
+    ram: {
+      totalBytes,
+      freeBytes,
+      usedBytes,
+      usedPercent: totalBytes > 0 ? Math.round((usedBytes / totalBytes) * 100) : null,
+      clockMhz:
+        Number.isFinite(Number(windowsPanel?.ram?.clockMhz)) ? Number(windowsPanel.ram.clockMhz) : null,
+    },
+    display:
+      windowsPanel?.display && typeof windowsPanel.display === "object"
+        ? {
+            width: Number.isFinite(Number(windowsPanel.display.width)) ? Number(windowsPanel.display.width) : null,
+            height: Number.isFinite(Number(windowsPanel.display.height))
+              ? Number(windowsPanel.display.height)
+              : null,
+            refreshHz: Number.isFinite(Number(windowsPanel.display.refreshHz))
+              ? Number(windowsPanel.display.refreshHz)
+              : null,
+          }
+        : undefined,
+    publicIp:
+      windowsPanel?.publicIp && typeof windowsPanel.publicIp === "object"
+        ? windowsPanel.publicIp
+        : undefined,
+  };
+
+  const bridge = {
+    ok: true,
+    service: "pc-control-bridge",
+    listen: {
+      host: config.listenHost,
+      port: config.listenPort,
+    },
+    configPath: config.configPath,
+    mode: config.mode,
+  };
+
+  const host = {
+    ok: true,
     hostname: os.hostname(),
     platform: process.platform,
     release: os.release(),
     uptimeSec: os.uptime(),
     memory: {
-      totalBytes: os.totalmem(),
-      freeBytes: os.freemem(),
+      totalBytes,
+      freeBytes,
     },
-    allowedRoots: disks,
-    integrations: {
-      wsl: await safeRead(async () => ({ supported: process.platform === "win32" })),
-      docker: { checked: false },
-      ollama: { checked: false },
+  };
+
+  const storage = {
+    ok: allowedRoots.every((entry) => entry.exists === true),
+    allowedRoots,
+    stagingDir,
+    auditDir,
+  };
+
+  if (stagingDir.exists !== true || auditDir.exists !== true) {
+    storage.ok = false;
+  }
+
+  const integrations = {
+    wsl: {
+      detected: isWsl(),
+      ok: isWsl(),
+    },
+    gateway: gatewayState
+      ? {
+          ok:
+            gatewayState.Status === "running" &&
+            ((gatewayState.Health && gatewayState.Health.Status === "healthy") || !gatewayState.Health),
+          status: gatewayState.Status,
+          health: gatewayState.Health?.Status || null,
+        }
+      : {
+          ok: false,
+        },
+    ollama:
+      ollama && typeof ollama === "object"
+        ? ollama
+        : {
+            ok: false,
+          },
+  };
+
+  const ok =
+    bridge.ok === true &&
+    host.ok === true &&
+    storage.ok === true &&
+    Object.values(integrations).every((entry) => entry?.ok === true || entry?.detected === true);
+
+  return {
+    ok,
+    components: {
+      panel,
+      bridge,
+      host,
+      storage,
+      integrations,
     },
   };
 }
