@@ -1,6 +1,14 @@
 import { requirePermission } from "./policy.mjs";
 import { healthCheck } from "./ops/health.mjs";
 import {
+  addAllowedRoot,
+  hostDiscoveryBrowse,
+  hostDiscoveryOverview,
+  listAllowedRoots,
+  removeAllowedRoot,
+} from "./ops/admin.mjs";
+import { monitorPower } from "./ops/display.mjs";
+import {
   listDirectory,
   makeDirectory,
   movePath,
@@ -13,6 +21,12 @@ import { inspectTab, listTabs } from "./ops/browser.mjs";
 
 const HANDLERS = {
   "health.check": healthCheck,
+  "config.allowed_roots.list": listAllowedRoots,
+  "config.allowed_roots.add": addAllowedRoot,
+  "config.allowed_roots.remove": removeAllowedRoot,
+  "config.host_discovery.overview": hostDiscoveryOverview,
+  "config.host_discovery.browse": hostDiscoveryBrowse,
+  "display.monitor_power": monitorPower,
   "fs.list": listDirectory,
   "fs.search": searchFiles,
   "fs.read_meta": readMetadata,
