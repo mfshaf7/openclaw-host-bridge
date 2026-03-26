@@ -1,12 +1,16 @@
 param(
   [string]$TaskName = 'OpenClawPcControlBridge',
   [string]$Distro = 'Ubuntu',
-  [string]$Root = '/home/mfshaf7/projects/openclaw-isolated-deployment'
+  [string]$Root = ''
 )
 
 $ErrorActionPreference = 'Stop'
 
-$wslCommand = "$Root/scripts/start-pc-control-bridge.sh"
+if (-not $Root) {
+  $Root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+}
+
+$wslCommand = "$Root/scripts/start-pc-control-bridge-tmux.sh"
 $wslArgs = "-d $Distro --cd $Root /bin/bash -lc `"$wslCommand`""
 
 $action = New-ScheduledTaskAction -Execute 'wsl.exe' -Argument $wslArgs

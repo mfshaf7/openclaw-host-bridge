@@ -102,7 +102,8 @@ Read in this order:
 1. [docs/architecture.md](docs/architecture.md)
 2. [docs/security-model.md](docs/security-model.md)
 3. [docs/wsl-mode.md](docs/wsl-mode.md)
-4. [docs/install.md](docs/install.md)
+4. [docs/host-deployment.md](docs/host-deployment.md)
+5. [docs/install.md](docs/install.md)
 
 ## Tests
 

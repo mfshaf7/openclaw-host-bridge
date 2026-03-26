@@ -23,6 +23,7 @@ OpenClaw running in a container or VM does not automatically gain controlled acc
 - Windows files are accessed through `/mnt/<drive>/...`
 - the isolated runtime reaches the bridge over HTTP on the host side
 - startup/persistence is handled through the provided scripts and launcher path
+- the supported persistent host mode uses a detached `tmux` session inside WSL
 
 ## What Is Configurable
 
@@ -43,3 +44,15 @@ It is not:
 - a direct replacement for OpenClaw runtime isolation
 
 It is a practical bridge mode for Windows + WSL environments.
+
+## Persistence Path
+
+Recommended persistence flow:
+
+1. `scripts/start-pc-control-bridge.sh` for foreground validation
+2. `scripts/start-pc-control-bridge-tmux.sh` for detached WSL persistence
+3. `scripts/start-pc-control-bridge-hidden.ps1` or `scripts/register-pc-control-bridge-task.ps1` for Windows-side startup
+
+Read:
+
+- [docs/host-deployment.md](host-deployment.md)

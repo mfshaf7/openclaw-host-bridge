@@ -77,15 +77,22 @@ Expected result:
 
 ## 5. Install The Persistent Startup Path
 
-Use the provided scripts for the WSL-backed Windows startup path.
+Use the provided tmux-backed WSL startup path for persistence.
 
 Relevant scripts:
 
 - `scripts/start-pc-control-bridge.sh`
-- `scripts/start-pc-control-bridge-daemon.sh`
+- `scripts/run-pc-control-bridge-supervisor.sh`
+- `scripts/start-pc-control-bridge-tmux.sh`
 - `scripts/start-pc-control-bridge-hidden.ps1`
 - `scripts/register-pc-control-bridge-task.ps1`
 - `scripts/register-pc-control-bridge-hidden-task.ps1`
+
+Recommended flow:
+
+1. validate foreground startup first with `scripts/start-pc-control-bridge.sh`
+2. validate persistent WSL startup with `scripts/start-pc-control-bridge-tmux.sh`
+3. only then wire in the Windows launcher or logon task
 
 The exact startup method should be validated once in the target environment after install and after reboot/logon.
 
@@ -127,3 +134,8 @@ Mutating operations should still require explicit confirmation.
 Do not enable export just because read-only or organize mode works.
 
 Export changes the risk boundary because it sends host data out through another delivery channel.
+
+## Related Documents
+
+- [docs/wsl-mode.md](wsl-mode.md)
+- [docs/host-deployment.md](host-deployment.md)

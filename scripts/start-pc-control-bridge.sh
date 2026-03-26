@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="${PC_CONTROL_ROOT:-/home/mfshaf7/projects/openclaw-isolated-deployment}"
-CONFIG_PATH="${PC_CONTROL_BRIDGE_CONFIG:-$ROOT/pc-control-bridge/config/policy.local.json}"
-PID_PATH="$ROOT/tmp/pc-control-bridge.pid"
-LOCK_PATH="$ROOT/tmp/pc-control-bridge.lock"
-LOG_PATH="$ROOT/tmp/pc-control-bridge.log"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="${PC_CONTROL_ROOT:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
+CONFIG_PATH="${PC_CONTROL_BRIDGE_CONFIG:-$ROOT/config/policy.local.json}"
+PID_PATH="${PC_CONTROL_PID_PATH:-$ROOT/tmp/pc-control-bridge.pid}"
+LOCK_PATH="${PC_CONTROL_LOCK_PATH:-$ROOT/tmp/pc-control-bridge.lock}"
+LOG_PATH="${PC_CONTROL_LOG_PATH:-$ROOT/tmp/pc-control-bridge.log}"
 NODE_BIN_DIR="${PC_CONTROL_NODE_BIN_DIR:-$HOME/.nvm/versions/node/v24.14.0/bin}"
 
 export PATH="$NODE_BIN_DIR:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
@@ -39,4 +40,4 @@ export OPENCLAW_GATEWAY_TOKEN="$gateway_token"
 export PC_CONTROL_BRIDGE_CONFIG="$CONFIG_PATH"
 
 echo "$$" >"$PID_PATH"
-exec node "$ROOT/pc-control-bridge/src/index.mjs" >>"$LOG_PATH" 2>&1
+exec node "$ROOT/src/index.mjs" >>"$LOG_PATH" 2>&1
