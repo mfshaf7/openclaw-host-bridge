@@ -100,13 +100,13 @@ The exact startup method should be validated once in the target environment afte
 
 You still need:
 
-- the OpenClaw-side `pc-control` plugin
+- the OpenClaw-side `host-control` plugin
 - the skill or prompt/routing layer that uses it
 
 Recommended plugin path:
 
 ```bash
-openclaw plugins install ./pc-control-openclaw-plugin
+openclaw plugins install ./host-control-openclaw-plugin
 ```
 
 ## 7. Validate Read-Only Mode First

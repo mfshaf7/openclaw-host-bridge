@@ -26,7 +26,7 @@ It is not:
 ```mermaid
 flowchart LR
     Gateway[OpenClaw runtime]
-    Plugin[pc-control plugin]
+    Plugin[host-control plugin]
     Bridge[openclaw-host-bridge]
     Host[Windows host]
 
@@ -115,5 +115,5 @@ node --test test/*.test.mjs
 
 ## Related Repositories
 
-- OpenClaw-side adapter plugin: `pc-control-openclaw-plugin`
+- OpenClaw-side adapter plugin: `host-control-openclaw-plugin`
 - channel-side deterministic Telegram behavior: `openclaw-telegram-enhanced`

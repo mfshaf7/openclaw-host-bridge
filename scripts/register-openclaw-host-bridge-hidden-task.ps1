@@ -25,12 +25,12 @@ $principal = New-ScheduledTaskPrincipal `
   -RunLevel Limited
 
 Register-ScheduledTask `
-  -TaskName 'OpenClawPcControlBridge' `
+  -TaskName 'OpenClawHostBridge' `
   -Action $action `
   -Trigger $trigger `
   -Settings $settings `
   -Principal $principal `
   -Force | Out-Null
 
-Start-ScheduledTask -TaskName 'OpenClawPcControlBridge'
-Get-ScheduledTaskInfo -TaskName 'OpenClawPcControlBridge' | Select-Object LastRunTime, LastTaskResult
+Start-ScheduledTask -TaskName 'OpenClawHostBridge'
+Get-ScheduledTaskInfo -TaskName 'OpenClawHostBridge' | Select-Object LastRunTime, LastTaskResult

@@ -1,5 +1,5 @@
 param(
-  [string]$TaskName = 'OpenClawPcControlBridge',
+  [string]$TaskName = 'OpenClawHostBridge',
   [string]$Distro = 'Ubuntu',
   [string]$Root = ''
 )

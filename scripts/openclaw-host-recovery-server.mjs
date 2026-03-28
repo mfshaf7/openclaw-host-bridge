@@ -110,7 +110,7 @@ async function handleSelfHeal(action) {
     steps.push({ step: "bridge_repair_network", ...(await repairNetwork()) });
   } else if (action === "gateway_restart") {
     steps.push({ step: "gateway_restart", ...(await gatewayRestart()) });
-  } else if (action === "full_pc_control_repair") {
+  } else if (action === "full_host_control_repair") {
     steps.push({ step: "bridge_restart", ...(await restartBridge()) });
     steps.push({ step: "bridge_repair_network", ...(await repairNetwork()) });
   } else if (action !== "recheck_health") {

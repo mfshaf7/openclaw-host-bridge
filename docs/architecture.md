@@ -10,7 +10,7 @@ This document explains where `openclaw-host-bridge` sits in the overall system a
 flowchart LR
     User[Telegram / UI / operator]
     OpenClaw[OpenClaw runtime]
-    Plugin[pc-control plugin]
+    Plugin[host-control plugin]
     Bridge[openclaw-host-bridge]
     Host[Windows host]
 
@@ -32,7 +32,7 @@ Owns:
 
 Does not own host policy.
 
-### pc-control plugin
+### host-control plugin
 
 Owns:
 
