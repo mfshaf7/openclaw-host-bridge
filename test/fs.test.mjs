@@ -7,7 +7,7 @@ import path from "node:path";
 import { quarantinePath, searchFiles, stageForTelegram } from "../src/ops/fs.mjs";
 
 test("searchFiles can return matching directories", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-host-bridge-"));
   const allowedRoot = path.join(root, "Music");
   const targetDir = path.join(allowedRoot, "Spotify-Local");
   await fs.mkdir(targetDir, { recursive: true });
@@ -33,7 +33,7 @@ test("searchFiles can return matching directories", async () => {
 });
 
 test("stageForTelegram copies an allowed file into the staging directory", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-host-bridge-"));
   const allowedRoot = path.join(root, "Downloads");
   const stagingDir = path.join(root, "Staging");
   await fs.mkdir(allowedRoot, { recursive: true });
@@ -56,7 +56,7 @@ test("stageForTelegram copies an allowed file into the staging directory", async
 });
 
 test("stageForTelegram rejects directories", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-host-bridge-"));
   const allowedRoot = path.join(root, "Downloads");
   const stagingDir = path.join(root, "Staging");
   await fs.mkdir(path.join(allowedRoot, "folder"), { recursive: true });
@@ -76,7 +76,7 @@ test("stageForTelegram rejects directories", async () => {
 });
 
 test("quarantinePath moves an allowed path into the quarantine directory", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-host-bridge-"));
   const allowedRoot = path.join(root, "Downloads");
   const quarantineDir = path.join(root, "Quarantine");
   await fs.mkdir(allowedRoot, { recursive: true });
@@ -100,9 +100,9 @@ test("quarantinePath moves an allowed path into the quarantine directory", async
 });
 
 test("quarantinePath can cross filesystems by copy-and-remove fallback", async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-bridge-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-host-bridge-"));
   const allowedRoot = path.join(root, "Downloads");
-  const quarantineDir = path.join(os.tmpdir(), `pc-control-quarantine-${Date.now()}`);
+  const quarantineDir = path.join(os.tmpdir(), `openclaw-host-quarantine-${Date.now()}`);
   await fs.mkdir(allowedRoot, { recursive: true });
   const sourcePath = path.join(allowedRoot, "note.txt");
   await fs.writeFile(sourcePath, "hello", "utf8");

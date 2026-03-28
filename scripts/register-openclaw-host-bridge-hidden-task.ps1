@@ -1,10 +1,10 @@
 $ErrorActionPreference = 'Stop'
 
 $userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-$launcherPath = if ($env:PC_CONTROL_WINDOWS_LAUNCHER) {
-  $env:PC_CONTROL_WINDOWS_LAUNCHER
+$launcherPath = if ($env:OPENCLAW_HOST_BRIDGE_WINDOWS_LAUNCHER) {
+  $env:OPENCLAW_HOST_BRIDGE_WINDOWS_LAUNCHER
 } else {
-  (Join-Path $env:TEMP 'start-pc-control-bridge-hidden.ps1')
+  (Join-Path $env:TEMP 'start-openclaw-host-bridge-hidden.ps1')
 }
 
 $action = New-ScheduledTaskAction `

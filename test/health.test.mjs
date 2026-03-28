@@ -7,7 +7,7 @@ import fs from "node:fs/promises";
 import { healthCheck } from "../src/ops/health.mjs";
 
 test("healthCheck returns structured components payload", async () => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "pc-control-health-"));
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-host-health-"));
   const allowedRoot = path.join(tempRoot, "allowed");
   const stagingDir = path.join(tempRoot, "staging");
   const auditDir = path.join(tempRoot, "audit");
@@ -32,7 +32,7 @@ test("healthCheck returns structured components payload", async () => {
   assert.ok(result.components.host);
   assert.ok(result.components.storage);
   assert.ok(result.components.integrations);
-  assert.equal(result.components.bridge.service, "pc-control-bridge");
+  assert.equal(result.components.bridge.service, "openclaw-host-bridge");
   assert.equal(result.components.storage.allowedRoots[0].path, allowedRoot);
   assert.equal(result.components.storage.allowedRoots[0].exists, true);
 });

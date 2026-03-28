@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document explains where `pc-control-bridge` sits in the overall system and why it is separate from both OpenClaw core and channel-specific behavior.
+This document explains where `openclaw-host-bridge` sits in the overall system and why it is separate from both OpenClaw core and channel-specific behavior.
 
 ## System Position
 
@@ -11,7 +11,7 @@ flowchart LR
     User[Telegram / UI / operator]
     OpenClaw[OpenClaw runtime]
     Plugin[pc-control plugin]
-    Bridge[pc-control-bridge]
+    Bridge[openclaw-host-bridge]
     Host[Windows host]
 
     User --> OpenClaw --> Plugin --> Bridge --> Host
@@ -42,7 +42,7 @@ Owns:
 
 Does not own host enforcement.
 
-### pc-control-bridge
+### openclaw-host-bridge
 
 Owns:
 

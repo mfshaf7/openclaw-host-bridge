@@ -32,11 +32,11 @@ function resolveAllowedRoot(root) {
 }
 
 export async function loadConfig() {
-  const configPath = process.env.PC_CONTROL_BRIDGE_CONFIG
-    ? path.resolve(process.env.PC_CONTROL_BRIDGE_CONFIG)
+  const configPath = process.env.OPENCLAW_HOST_BRIDGE_CONFIG
+    ? path.resolve(process.env.OPENCLAW_HOST_BRIDGE_CONFIG)
     : path.resolve(process.cwd(), "config", "policy.json");
   const raw = JSON.parse(await fs.readFile(configPath, "utf8"));
-  const tokenEnv = raw?.auth?.token_env || "PC_CONTROL_BRIDGE_TOKEN";
+  const tokenEnv = raw?.auth?.token_env || "OPENCLAW_HOST_BRIDGE_TOKEN";
   const authToken = process.env[tokenEnv];
   if (!authToken) {
     throw new Error(`Missing auth token env: ${tokenEnv}`);
@@ -52,10 +52,10 @@ export async function loadConfig() {
   const stagingDir = resolveAllowedRoot(raw?.staging_dir || "Downloads\\OpenClaw-Staging");
   const quarantineDir = raw?.quarantine_dir
     ? resolveAllowedRoot(raw.quarantine_dir)
-    : path.join(path.dirname(stagingDir), "pc-control-quarantine");
+    : path.join(path.dirname(stagingDir), "openclaw-host-quarantine");
   const auditDir = path.resolve(
     normalizeUserPath(
-      expandEnv(raw?.audit?.dir || "%LOCALAPPDATA%\\OpenClaw\\pc-control-bridge\\audit"),
+      expandEnv(raw?.audit?.dir || "%LOCALAPPDATA%\\OpenClaw\\openclaw-host-bridge\\audit"),
     ),
   );
   const limits = {

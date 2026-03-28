@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document explains the current WSL-backed operating mode of `pc-control-bridge`.
+This document explains the current WSL-backed operating mode of `openclaw-host-bridge`.
 
 ## Supported Shape
 
@@ -49,9 +49,9 @@ It is a practical bridge mode for Windows + WSL environments.
 
 Recommended persistence flow:
 
-1. `scripts/start-pc-control-bridge.sh` for foreground validation
-2. `scripts/start-pc-control-bridge-tmux.sh` for detached WSL persistence
-3. `scripts/start-pc-control-bridge-hidden.ps1` or `scripts/register-pc-control-bridge-task.ps1` for Windows-side startup
+1. `scripts/start-openclaw-host-bridge.sh` for foreground validation
+2. `scripts/start-openclaw-host-bridge-tmux.sh` for detached WSL persistence
+3. `scripts/start-openclaw-host-bridge-hidden.ps1` or `scripts/register-openclaw-host-bridge-task.ps1` for Windows-side startup
 
 Read:
 

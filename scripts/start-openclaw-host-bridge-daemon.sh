@@ -2,11 +2,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="${PC_CONTROL_ROOT:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
-CONFIG_PATH="${PC_CONTROL_BRIDGE_CONFIG:-$ROOT/config/policy.local.json}"
-PID_PATH="${PC_CONTROL_PID_PATH:-$ROOT/tmp/pc-control-bridge.pid}"
-LOG_PATH="${PC_CONTROL_LOG_PATH:-$ROOT/tmp/pc-control-bridge.log}"
-NODE_BIN_DIR="${PC_CONTROL_NODE_BIN_DIR:-$HOME/.nvm/versions/node/v24.14.0/bin}"
+ROOT="${OPENCLAW_HOST_BRIDGE_ROOT:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
+CONFIG_PATH="${OPENCLAW_HOST_BRIDGE_CONFIG:-$ROOT/config/policy.local.json}"
+PID_PATH="${OPENCLAW_HOST_BRIDGE_PID_PATH:-$ROOT/tmp/openclaw-host-bridge.pid}"
+LOG_PATH="${OPENCLAW_HOST_BRIDGE_LOG_PATH:-$ROOT/tmp/openclaw-host-bridge.log}"
+NODE_BIN_DIR="${OPENCLAW_HOST_BRIDGE_NODE_BIN_DIR:-$HOME/.nvm/versions/node/v24.14.0/bin}"
 
 export PATH="$NODE_BIN_DIR:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
@@ -25,7 +25,7 @@ gateway_token="$(
 
 (
   export OPENCLAW_GATEWAY_TOKEN="$gateway_token"
-  export PC_CONTROL_BRIDGE_CONFIG="$CONFIG_PATH"
+  export OPENCLAW_HOST_BRIDGE_CONFIG="$CONFIG_PATH"
   nohup node "$ROOT/src/index.mjs" >>"$LOG_PATH" 2>&1 &
   echo $! >"$PID_PATH"
 ) >/dev/null 2>&1
@@ -34,6 +34,6 @@ sleep 1
 
 started_pid="$(cat "$PID_PATH" 2>/dev/null || true)"
 if [[ -z "${started_pid:-}" ]] || ! kill -0 "$started_pid" 2>/dev/null; then
-  echo "pc-control-bridge failed to start" >&2
+  echo "openclaw-host-bridge failed to start" >&2
   exit 1
 fi

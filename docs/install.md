@@ -57,7 +57,7 @@ Recommended first posture:
 ## 3. Run The Bridge In Foreground First
 
 ```bash
-export PC_CONTROL_BRIDGE_CONFIG=/path/to/policy.local.json
+export OPENCLAW_HOST_BRIDGE_CONFIG=/path/to/policy.local.json
 node src/index.mjs
 ```
 
@@ -81,17 +81,17 @@ Use the provided tmux-backed WSL startup path for persistence.
 
 Relevant scripts:
 
-- `scripts/start-pc-control-bridge.sh`
-- `scripts/run-pc-control-bridge-supervisor.sh`
-- `scripts/start-pc-control-bridge-tmux.sh`
-- `scripts/start-pc-control-bridge-hidden.ps1`
-- `scripts/register-pc-control-bridge-task.ps1`
-- `scripts/register-pc-control-bridge-hidden-task.ps1`
+- `scripts/start-openclaw-host-bridge.sh`
+- `scripts/run-openclaw-host-bridge-supervisor.sh`
+- `scripts/start-openclaw-host-bridge-tmux.sh`
+- `scripts/start-openclaw-host-bridge-hidden.ps1`
+- `scripts/register-openclaw-host-bridge-task.ps1`
+- `scripts/register-openclaw-host-bridge-hidden-task.ps1`
 
 Recommended flow:
 
-1. validate foreground startup first with `scripts/start-pc-control-bridge.sh`
-2. validate persistent WSL startup with `scripts/start-pc-control-bridge-tmux.sh`
+1. validate foreground startup first with `scripts/start-openclaw-host-bridge.sh`
+2. validate persistent WSL startup with `scripts/start-openclaw-host-bridge-tmux.sh`
 3. only then wire in the Windows launcher or logon task
 
 The exact startup method should be validated once in the target environment after install and after reboot/logon.

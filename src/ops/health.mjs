@@ -292,7 +292,7 @@ export async function healthCheck(config) {
 
   const bridge = {
     ok: true,
-    service: "pc-control-bridge",
+    service: "openclaw-host-bridge",
     listen: {
       host: config.listenHost,
       port: config.listenPort,

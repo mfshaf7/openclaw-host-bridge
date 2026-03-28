@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository focuses on the host-side `pc-control-bridge` and its documented WSL-backed Windows mode.
+This repository focuses on the host-side `openclaw-host-bridge` and its documented WSL-backed Windows mode.
 
 ## Contribution priorities
 

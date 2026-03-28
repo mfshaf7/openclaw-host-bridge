@@ -34,7 +34,7 @@ export async function createServer() {
 
   const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && req.url === "/healthz") {
-      const out = json(200, { ok: true, service: "pc-control-bridge", mode: config.mode });
+      const out = json(200, { ok: true, service: "openclaw-host-bridge", mode: config.mode });
       res.writeHead(out.statusCode, out.headers);
       res.end(out.body);
       return;
@@ -104,7 +104,7 @@ export async function createServer() {
       console.log(
         JSON.stringify({
           ok: true,
-          service: "pc-control-bridge",
+          service: "openclaw-host-bridge",
           host: config.listenHost,
           port: config.listenPort,
           config: config.configPath,

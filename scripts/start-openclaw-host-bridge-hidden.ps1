@@ -1,9 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
-$distro = if ($env:PC_CONTROL_WSL_DISTRO) { $env:PC_CONTROL_WSL_DISTRO } else { 'Ubuntu' }
+$distro = if ($env:OPENCLAW_HOST_BRIDGE_WSL_DISTRO) { $env:OPENCLAW_HOST_BRIDGE_WSL_DISTRO } else { 'Ubuntu' }
 $defaultRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$root = if ($env:PC_CONTROL_ROOT) { $env:PC_CONTROL_ROOT } else { $defaultRoot }
-$launcher = "$root/scripts/start-pc-control-bridge-tmux.sh"
+$root = if ($env:OPENCLAW_HOST_BRIDGE_ROOT) { $env:OPENCLAW_HOST_BRIDGE_ROOT } else { $defaultRoot }
+$launcher = "$root/scripts/start-openclaw-host-bridge-tmux.sh"
 $wslArgs = @(
   '-d', $distro,
   '--cd', $root,

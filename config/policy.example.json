@@ -5,7 +5,7 @@
     "port": 48721
   },
   "auth": {
-    "token_env": "PC_CONTROL_BRIDGE_TOKEN"
+    "token_env": "OPENCLAW_HOST_BRIDGE_TOKEN"
   },
   "allowed_roots": [
     "Desktop",
@@ -26,6 +26,6 @@
     "max_export_bytes": 104857600
   },
   "audit": {
-    "dir": "%LOCALAPPDATA%\\OpenClaw\\pc-control-bridge\\audit"
+    "dir": "%LOCALAPPDATA%\\OpenClaw\\openclaw-host-bridge\\audit"
   }
 }

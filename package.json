@@ -1,9 +1,9 @@
 {
-  "name": "pc-control-bridge",
+  "name": "openclaw-host-bridge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Host-side bridge for OpenClaw pc-control.",
+  "description": "Host-side bridge for OpenClaw host control.",
   "scripts": {
     "start": "node src/index.mjs",
     "check": "node --check src/index.mjs",

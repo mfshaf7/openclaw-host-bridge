@@ -5,13 +5,13 @@ import os from "node:os";
 
 const execFileAsync = promisify(execFile);
 
-const PORT = Number(process.env.PC_CONTROL_RECOVERY_PORT || 48722);
-const HOST = process.env.PC_CONTROL_RECOVERY_HOST || "0.0.0.0";
-const TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || process.env.PC_CONTROL_BRIDGE_TOKEN || "";
-const BRIDGE_URL = process.env.PC_CONTROL_BRIDGE_HEALTH_URL || "http://127.0.0.1:48721/healthz";
-const SESSION = process.env.PC_CONTROL_TMUX_SESSION || "pc-control-bridge";
-const ROOT = process.env.PC_CONTROL_ROOT || "";
-const CONFIG_PATH = process.env.PC_CONTROL_BRIDGE_CONFIG || "";
+const PORT = Number(process.env.OPENCLAW_HOST_RECOVERY_PORT || 48722);
+const HOST = process.env.OPENCLAW_HOST_RECOVERY_HOST || "0.0.0.0";
+const TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_HOST_BRIDGE_TOKEN || "";
+const BRIDGE_URL = process.env.OPENCLAW_HOST_BRIDGE_HEALTH_URL || "http://127.0.0.1:48721/healthz";
+const SESSION = process.env.OPENCLAW_HOST_BRIDGE_TMUX_SESSION || "openclaw-host-bridge";
+const ROOT = process.env.OPENCLAW_HOST_BRIDGE_ROOT || "";
+const CONFIG_PATH = process.env.OPENCLAW_HOST_BRIDGE_CONFIG || "";
 const OPENCLAW_CONFIG_PATH = process.env.OPENCLAW_CONFIG_PATH || "";
 
 function json(res, status, body) {
@@ -65,11 +65,11 @@ netsh interface portproxy delete v4tov4 listenport=48721 listenaddress=0.0.0.0 |
 netsh interface portproxy add v4tov4 listenport=48721 listenaddress=0.0.0.0 connectport=48721 connectaddress=${wslIp}
 netsh interface portproxy delete v4tov4 listenport=48722 listenaddress=0.0.0.0 | Out-Null
 netsh interface portproxy add v4tov4 listenport=48722 listenaddress=0.0.0.0 connectport=48722 connectaddress=${wslIp}
-if (-not (Get-NetFirewallRule -DisplayName 'OpenClaw pc-control bridge 48721' -ErrorAction SilentlyContinue)) {
-  New-NetFirewallRule -DisplayName 'OpenClaw pc-control bridge 48721' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 48721 | Out-Null
+if (-not (Get-NetFirewallRule -DisplayName 'OpenClaw host bridge 48721' -ErrorAction SilentlyContinue)) {
+  New-NetFirewallRule -DisplayName 'OpenClaw host bridge 48721' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 48721 | Out-Null
 }
-if (-not (Get-NetFirewallRule -DisplayName 'OpenClaw pc-control recovery 48722' -ErrorAction SilentlyContinue)) {
-  New-NetFirewallRule -DisplayName 'OpenClaw pc-control recovery 48722' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 48722 | Out-Null
+if (-not (Get-NetFirewallRule -DisplayName 'OpenClaw host recovery 48722' -ErrorAction SilentlyContinue)) {
+  New-NetFirewallRule -DisplayName 'OpenClaw host recovery 48722' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 48722 | Out-Null
 }
 `);
   return { ok: true, wslIp };
@@ -80,14 +80,14 @@ async function restartBridge() {
     throw new Error("Missing required bridge restart environment");
   }
   await execFileAsync("tmux", ["kill-session", "-t", SESSION]).catch(() => {});
-  await execFileAsync(`${ROOT}/scripts/start-pc-control-bridge-tmux.sh`, [], {
+  await execFileAsync(`${ROOT}/scripts/start-openclaw-host-bridge-tmux.sh`, [], {
     env: {
       ...process.env,
-      PC_CONTROL_ROOT: ROOT,
-      PC_CONTROL_BRIDGE_CONFIG: CONFIG_PATH,
+      OPENCLAW_HOST_BRIDGE_ROOT: ROOT,
+      OPENCLAW_HOST_BRIDGE_CONFIG: CONFIG_PATH,
       OPENCLAW_CONFIG_PATH,
       OPENCLAW_GATEWAY_TOKEN: TOKEN,
-      PC_CONTROL_TMUX_SESSION: SESSION,
+      OPENCLAW_HOST_BRIDGE_TMUX_SESSION: SESSION,
     },
   });
   return { ok: true, session: SESSION };
@@ -132,7 +132,7 @@ async function handleSelfHeal(action) {
 const server = http.createServer(async (req, res) => {
   try {
     if (req.url === "/healthz" && req.method === "GET") {
-      return json(res, 200, { ok: true, service: "pc-control-recovery" });
+      return json(res, 200, { ok: true, service: "openclaw-host-recovery" });
     }
     if (req.url === "/v1/self-heal" && req.method === "POST") {
       if (!TOKEN || getAuthToken(req) !== TOKEN) {
@@ -154,5 +154,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`pc-control-recovery listening on http://${HOST}:${PORT}`);
+  console.log(`openclaw-host-recovery listening on http://${HOST}:${PORT}`);
 });

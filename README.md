@@ -1,6 +1,6 @@
-# pc-control-bridge
+# openclaw-host-bridge
 
-`pc-control-bridge` is the host-side enforcement layer for OpenClaw host control.
+`openclaw-host-bridge` is the host-side enforcement layer for OpenClaw host control.
 
 It exists for one reason: OpenClaw can run in an isolated container or VM, but users still want controlled access to the real host PC. The bridge provides that path without turning the assistant runtime itself into the host trust boundary.
 
@@ -27,7 +27,7 @@ It is not:
 flowchart LR
     Gateway[OpenClaw runtime]
     Plugin[pc-control plugin]
-    Bridge[pc-control-bridge]
+    Bridge[openclaw-host-bridge]
     Host[Windows host]
 
     Gateway --> Plugin --> Bridge --> Host
@@ -88,7 +88,7 @@ This is not a hidden workaround. It is the current supported operating model of 
 
 This repository is the canonical bridge source tree.
 
-In the isolated deployment model, the deployment workspace may also contain a small `pc-control-bridge/` directory for documentation and integration references. Operators should still treat this standalone repository as the runnable bridge source for:
+In the isolated deployment model, the deployment workspace may also contain a small `openclaw-host-bridge/` directory for documentation and integration references. Operators should still treat this standalone repository as the runnable bridge source for:
 
 - bridge scripts
 - bridge runtime code

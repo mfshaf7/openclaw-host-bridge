@@ -12,7 +12,7 @@
     "/mnt/c/Users/<windows-user>/Documents",
     "/mnt/c/Users/<windows-user>/Downloads"
   ],
-  "staging_dir": "/home/<wsl-user>/<project-dir>/tmp/pc-control-staging",
+  "staging_dir": "/home/<wsl-user>/<project-dir>/tmp/openclaw-host-staging",
   "permissions": {
     "read": true,
     "organize": false,
@@ -26,6 +26,6 @@
     "max_export_bytes": 104857600
   },
   "audit": {
-    "dir": "/home/<wsl-user>/<project-dir>/tmp/pc-control-audit"
+    "dir": "/home/<wsl-user>/<project-dir>/tmp/openclaw-host-audit"
   }
 }

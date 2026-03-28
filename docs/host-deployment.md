@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document explains the actual host deployment bundle for `pc-control-bridge` in the supported Windows + WSL mode.
+This document explains the actual host deployment bundle for `openclaw-host-bridge` in the supported Windows + WSL mode.
 
 It exists because bridge source alone is not enough. Operators need to know:
 
@@ -27,11 +27,11 @@ These committed files make up the supported host deployment bundle:
 - `src/`
 - `config/policy.example.json`
 - `config/policy.wsl.example.json`
-- `scripts/start-pc-control-bridge.sh`
-- `scripts/run-pc-control-bridge-supervisor.sh`
-- `scripts/start-pc-control-bridge-tmux.sh`
-- `scripts/start-pc-control-bridge-hidden.ps1`
-- `scripts/register-pc-control-bridge-task.ps1`
+- `scripts/start-openclaw-host-bridge.sh`
+- `scripts/run-openclaw-host-bridge-supervisor.sh`
+- `scripts/start-openclaw-host-bridge-tmux.sh`
+- `scripts/start-openclaw-host-bridge-hidden.ps1`
+- `scripts/register-openclaw-host-bridge-task.ps1`
 
 ## Local Files Operators Must Create
 
@@ -48,23 +48,23 @@ These should not be committed.
 
 Foreground validation:
 
-- `scripts/start-pc-control-bridge.sh`
+- `scripts/start-openclaw-host-bridge.sh`
 
 Persistent WSL host mode:
 
-- `scripts/start-pc-control-bridge-tmux.sh`
+- `scripts/start-openclaw-host-bridge-tmux.sh`
 
 Restart loop inside WSL:
 
-- `scripts/run-pc-control-bridge-supervisor.sh`
+- `scripts/run-openclaw-host-bridge-supervisor.sh`
 
 Windows launcher:
 
-- `scripts/start-pc-control-bridge-hidden.ps1`
+- `scripts/start-openclaw-host-bridge-hidden.ps1`
 
 Windows logon task:
 
-- `scripts/register-pc-control-bridge-task.ps1`
+- `scripts/register-openclaw-host-bridge-task.ps1`
 
 ## Why tmux Is Used
 
@@ -96,4 +96,4 @@ In a multi-repo workspace:
 
 - this repository is the canonical host bridge runtime source
 - `openclaw-isolated-deployment` documents the system-wide deployment model
-- `openclaw-isolated-deployment/pc-control-bridge/` is documentation-oriented and should not be mistaken for the runnable bridge source tree
+- `openclaw-isolated-deployment/openclaw-host-bridge/` is documentation-oriented and should not be mistaken for the runnable bridge source tree
