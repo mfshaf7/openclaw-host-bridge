@@ -3,7 +3,17 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${OPENCLAW_HOST_BRIDGE_ROOT:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
-CONFIG_PATH="${OPENCLAW_HOST_BRIDGE_CONFIG:-$ROOT/config/policy.local.json}"
+DEFAULT_CONFIG_PATH="$ROOT/config/policy.local.json"
+OPENCLAW_HOME_DIR="${OPENCLAW_HOME:-$HOME/.openclaw}"
+FALLBACK_CONFIG_PATH="$OPENCLAW_HOME_DIR/workspace-telegram-fast/policy.local.json"
+CONFIG_PATH="${OPENCLAW_HOST_BRIDGE_CONFIG:-}"
+if [[ -z "$CONFIG_PATH" ]]; then
+  if [[ -f "$DEFAULT_CONFIG_PATH" ]]; then
+    CONFIG_PATH="$DEFAULT_CONFIG_PATH"
+  else
+    CONFIG_PATH="$FALLBACK_CONFIG_PATH"
+  fi
+fi
 PID_PATH="${OPENCLAW_HOST_BRIDGE_PID_PATH:-$ROOT/tmp/openclaw-host-bridge.pid}"
 LOCK_PATH="${OPENCLAW_HOST_BRIDGE_LOCK_PATH:-$ROOT/tmp/openclaw-host-bridge.lock}"
 LOG_PATH="${OPENCLAW_HOST_BRIDGE_LOG_PATH:-$ROOT/tmp/openclaw-host-bridge.log}"
