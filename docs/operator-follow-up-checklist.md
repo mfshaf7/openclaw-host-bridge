@@ -13,16 +13,17 @@ should be revisited in a future maintenance window.
 | Bridge runtime | Working | `/healthz` reachable and bridge restart path verified | Keep ownership path simple and documented |
 | Recovery runtime | Working | `/healthz` reachable and diagnostics/self-heal reachable | Add repair history output |
 | Self-heal for bridge-down scenario | Working | Telegram-triggered repair recovered bridge after forced failure | Add audit trail and explicit repair history |
-| Windows logon persistence for full stack | Working | `OpenClawHostStack` task now points at stack startup | Verify once after a real reboot/logon |
+| Windows logon persistence for full stack | Working | `PlatformCoreHostStack` starts the WSL `systemd` host stack | Verify once after a real reboot/logon |
 | Targeted TypeScript check for host-control dispatcher | Working | `npx tsc -p tsconfig.host-control-check.json` passes | Expand checks only when SDK typing is available |
 
 ## Reboot Checklist
 
 Run this after a real Windows reboot and logon:
 
-- confirm scheduled task `OpenClawHostStack` is present and `Ready`
-- confirm `openclaw-host-bridge` tmux session exists
-- confirm `openclaw-host-recovery` tmux session exists
+- confirm scheduled task `PlatformCoreHostStack` is present and `Ready`
+- confirm `openclaw-host-stack.target` is active
+- confirm `openclaw-host-bridge.service` is active
+- confirm `openclaw-host-recovery.service` is active
 - confirm bridge `/healthz` returns `200`
 - confirm recovery `/healthz` returns `200`
 - confirm Telegram host-control topic still answers `host status`
@@ -42,8 +43,8 @@ Run this after a real Windows reboot and logon:
 
 | Item | Priority | Status | Notes |
 | --- | --- | --- | --- |
-| Consolidate runtime ownership model | High | Pending | Windows task, WSL tmux, gateway, and network forwarding should be easier to reason about |
-| Reduce config drift between repo copies and live runtime | High | Pending | Current setup still has multiple copies that can diverge |
+| Consolidate runtime ownership model | High | In progress | Windows task now starts `systemd`; continue reducing legacy script assumptions |
+| Reduce config drift between repo copies and live runtime | High | Improved | `/opt` rollback copies are gone; keep source-of-truth in the migrated repos |
 | Add one-shot full operator status view | High | In progress | `host status` exists; extend it into a broader operator summary later |
 | Add admin-action audit log | Medium | Pending | Covers writes, allowed-root changes, repairs, restarts |
 | Create maintenance checklist for future changes | Medium | Pending | Before/after validation for safe updates |

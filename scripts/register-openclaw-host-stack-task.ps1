@@ -1,6 +1,6 @@
 param(
-  [string]$TaskName = 'OpenClawHostStack',
-  [string]$Distro = 'Ubuntu',
+  [string]$TaskName = 'PlatformCoreHostStack',
+  [string]$Distro = 'Platform-Core',
   [string]$Root = ''
 )
 
@@ -10,8 +10,8 @@ if (-not $Root) {
   $Root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 }
 
-$wslCommand = "$Root/scripts/start-openclaw-host-stack-tmux.sh"
-$wslArgs = "-d $Distro --cd $Root /bin/bash -lc `"$wslCommand`""
+$wslCommand = "systemctl start openclaw-host-stack.target && systemctl --quiet is-active openclaw-host-stack.target openclaw-host-bridge.service openclaw-host-recovery.service"
+$wslArgs = "-d $Distro -u root --cd $Root /bin/bash -lc `"$wslCommand`""
 
 $action = New-ScheduledTaskAction -Execute 'wsl.exe' -Argument $wslArgs
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
