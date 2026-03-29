@@ -51,8 +51,14 @@ Recommended persistence flow:
 
 1. `scripts/start-openclaw-host-bridge.sh` for foreground validation
 2. `scripts/start-openclaw-host-bridge-tmux.sh` for detached WSL persistence
-3. `scripts/start-openclaw-host-bridge-hidden.ps1` or `scripts/register-openclaw-host-bridge-task.ps1` for Windows-side startup
+3. `scripts/start-openclaw-host-stack-hidden.ps1` or `scripts/register-openclaw-host-stack-task.ps1` for Windows-side startup
+
+If you want the bridge and recovery listener to come up from the same stable
+config root, use:
+
+- `scripts/start-openclaw-host-stack-tmux.sh`
 
 Read:
 
 - [docs/host-deployment.md](host-deployment.md)
+- [docs/recovery-cutover.md](recovery-cutover.md)

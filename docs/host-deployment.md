@@ -28,10 +28,18 @@ These committed files make up the supported host deployment bundle:
 - `config/policy.example.json`
 - `config/policy.wsl.example.json`
 - `scripts/start-openclaw-host-bridge.sh`
+- `scripts/start-openclaw-host-recovery.sh`
 - `scripts/run-openclaw-host-bridge-supervisor.sh`
+- `scripts/run-openclaw-host-recovery-supervisor.sh`
 - `scripts/start-openclaw-host-bridge-tmux.sh`
+- `scripts/start-openclaw-host-recovery-tmux.sh`
+- `scripts/start-openclaw-host-stack-tmux.sh`
+- `scripts/stop-openclaw-host-stack.sh`
+- `scripts/status-openclaw-host-stack.sh`
 - `scripts/start-openclaw-host-bridge-hidden.ps1`
+- `scripts/start-openclaw-host-stack-hidden.ps1`
 - `scripts/register-openclaw-host-bridge-task.ps1`
+- `scripts/register-openclaw-host-stack-task.ps1`
 
 ## Local Files Operators Must Create
 
@@ -49,22 +57,28 @@ These should not be committed.
 Foreground validation:
 
 - `scripts/start-openclaw-host-bridge.sh`
+- `scripts/start-openclaw-host-recovery.sh`
 
 Persistent WSL host mode:
 
 - `scripts/start-openclaw-host-bridge-tmux.sh`
+- `scripts/start-openclaw-host-recovery-tmux.sh`
+- `scripts/start-openclaw-host-stack-tmux.sh`
 
 Restart loop inside WSL:
 
 - `scripts/run-openclaw-host-bridge-supervisor.sh`
+- `scripts/run-openclaw-host-recovery-supervisor.sh`
 
 Windows launcher:
 
 - `scripts/start-openclaw-host-bridge-hidden.ps1`
+- `scripts/start-openclaw-host-stack-hidden.ps1`
 
 Windows logon task:
 
 - `scripts/register-openclaw-host-bridge-task.ps1`
+- `scripts/register-openclaw-host-stack-task.ps1`
 
 ## Why tmux Is Used
 
@@ -85,10 +99,22 @@ A correct host deployment is not just “the launcher returned success.”
 Verify all of:
 
 1. the bridge process exists in WSL
-2. the bridge answers on its internal listener
-3. Windows-side forwarding or reachability works
-4. the isolated runtime can reach the bridge
-5. a real bridge operation succeeds
+2. the recovery process exists in WSL
+3. the bridge answers on its internal listener
+4. the recovery listener answers on its internal listener
+5. Windows-side forwarding or reachability works
+6. the isolated runtime can reach the bridge and recovery listener
+7. a real self-heal callback succeeds
+
+Operational helpers:
+
+- `scripts/status-openclaw-host-stack.sh`
+- `scripts/stop-openclaw-host-stack.sh`
+
+Operator tracking:
+
+- [docs/operator-follow-up-checklist.md](operator-follow-up-checklist.md)
+- [docs/host-control-capability-matrix.md](host-control-capability-matrix.md)
 
 ## Relationship To The Deployment Workspace
 
