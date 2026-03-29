@@ -15,10 +15,10 @@ It exists because bridge source alone is not enough. Operators need to know:
 The supported host deployment shape is:
 
 - Windows host
-- WSL2 distro such as Ubuntu
+- WSL2 distro such as `Platform-Core`
 - bridge runtime executed inside WSL
-- persistence provided by a detached `tmux` session
-- Windows-side startup through a PowerShell launcher or scheduled task
+- persistence owned by `systemd` inside WSL
+- Windows-side startup through the `PlatformCoreHostStack` scheduled task
 
 ## Committed Host Deployment Files
 
@@ -59,7 +59,12 @@ Foreground validation:
 - `scripts/start-openclaw-host-bridge.sh`
 - `scripts/start-openclaw-host-recovery.sh`
 
-Persistent WSL host mode:
+Supported persistent WSL host mode:
+
+- `systemctl start openclaw-host-stack.target`
+- `scripts/register-openclaw-host-stack-task.ps1`
+
+Legacy/manual persistent mode:
 
 - `scripts/start-openclaw-host-bridge-tmux.sh`
 - `scripts/start-openclaw-host-recovery-tmux.sh`
@@ -80,9 +85,10 @@ Windows logon task:
 - `scripts/register-openclaw-host-bridge-task.ps1`
 - `scripts/register-openclaw-host-stack-task.ps1`
 
-## Why tmux Is Used
+## Why tmux Still Exists
 
-The bridge needs a WSL-native persistent host that survives the launching shell.
+The bridge still ships tmux helpers for manual maintenance windows and fallback
+operation.
 
 `tmux` is used because it provides:
 
@@ -90,7 +96,8 @@ The bridge needs a WSL-native persistent host that survives the launching shell.
 - a persistent process host
 - a way to inspect the running host session later
 
-This is more reliable than assuming a one-off hidden shell process will remain the true lifetime owner of the bridge.
+For the current `Platform-Core` deployment, `systemd` is the supported runtime
+owner and Windows only provides the logon-triggered WSL entry.
 
 ## Verification Standard
 

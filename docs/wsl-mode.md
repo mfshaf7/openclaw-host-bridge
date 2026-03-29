@@ -22,8 +22,9 @@ OpenClaw running in a container or VM does not automatically gain controlled acc
 - the bridge process runs inside WSL
 - Windows files are accessed through `/mnt/<drive>/...`
 - the isolated runtime reaches the bridge over HTTP on the host side
-- startup/persistence is handled through the provided scripts and launcher path
-- the supported persistent host mode uses a detached `tmux` session inside WSL
+- startup/persistence is handled through the provided scripts and Windows launcher path
+- the supported persistent host mode on `Platform-Core` uses Windows logon to
+  enter WSL and `systemd` to own the bridge and recovery services
 
 ## What Is Configurable
 
@@ -50,13 +51,21 @@ It is a practical bridge mode for Windows + WSL environments.
 Recommended persistence flow:
 
 1. `scripts/start-openclaw-host-bridge.sh` for foreground validation
-2. `scripts/start-openclaw-host-bridge-tmux.sh` for detached WSL persistence
-3. `scripts/start-openclaw-host-stack-hidden.ps1` or `scripts/register-openclaw-host-stack-task.ps1` for Windows-side startup
+2. `systemctl start openclaw-host-stack.target` inside WSL for the supported
+   persistent host path
+3. `scripts/register-openclaw-host-stack-task.ps1` for Windows-side startup
+
+Legacy/manual fallback flow:
+
+- `scripts/start-openclaw-host-bridge-tmux.sh`
+- `scripts/start-openclaw-host-stack-tmux.sh`
+- `scripts/start-openclaw-host-stack-hidden.ps1`
 
 If you want the bridge and recovery listener to come up from the same stable
 config root, use:
 
-- `scripts/start-openclaw-host-stack-tmux.sh`
+- `openclaw-host-stack.target` for the supported `Platform-Core` path
+- `scripts/start-openclaw-host-stack-tmux.sh` only as a manual legacy fallback
 
 Read:
 

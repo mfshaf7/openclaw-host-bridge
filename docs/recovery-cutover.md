@@ -30,7 +30,8 @@ The repository now supports a more deterministic recovery startup path:
 - `scripts/start-openclaw-host-recovery.sh` owns recovery pid/lock/log behavior
 - `scripts/start-openclaw-host-recovery-tmux.sh` exports stable config paths into the session
 - `scripts/run-openclaw-host-recovery-supervisor.sh` provides a restart loop similar to the bridge
-- `scripts/start-openclaw-host-stack-tmux.sh` starts both bridge and recovery with the same config root
+- `openclaw-host-stack.target` starts both bridge and recovery under `systemd`
+- `scripts/start-openclaw-host-stack-tmux.sh` remains available only as a manual fallback
 
 Rollout order:
 
@@ -45,7 +46,9 @@ Rollback should be operationally cheap.
 
 Rollback steps:
 
-1. stop the new recovery or stack session:
+1. stop the new recovery or stack owner:
+   - `systemctl stop openclaw-host-stack.target`
+   - or, for legacy fallback sessions only:
    - `tmux kill-session -t openclaw-host-recovery`
    - `tmux kill-session -t openclaw-host-bridge`
 2. restart the previously known-good manual path
