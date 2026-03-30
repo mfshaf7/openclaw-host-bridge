@@ -9,6 +9,16 @@ import { fileURLToPath } from "node:url";
 const execFileAsync = promisify(execFile);
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const DEFAULT_WINDOWS_POWERSHELL_CANDIDATES = [
+  process.env.OPENCLAW_WINDOWS_POWERSHELL,
+  process.env.OPENCLAW_POWERSHELL_BIN,
+  "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+  "/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe",
+  "/mnt/c/Program Files/PowerShell/7/pwsh.exe",
+  "/mnt/c/Program Files/PowerShell/7-preview/pwsh.exe",
+  "powershell.exe",
+  "pwsh.exe",
+].filter((entry) => typeof entry === "string" && entry.trim());
 
 function resolveBridgeRoot() {
   return process.env.OPENCLAW_HOST_BRIDGE_ROOT || path.resolve(SCRIPT_DIR, "..");
@@ -41,6 +51,19 @@ function readJson(pathname) {
     return {};
   }
   return JSON.parse(fs.readFileSync(pathname, "utf8"));
+}
+
+function resolveWindowsPowerShellBinary() {
+  for (const candidate of DEFAULT_WINDOWS_POWERSHELL_CANDIDATES) {
+    if (candidate.includes("/") || candidate.includes("\\")) {
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+      continue;
+    }
+    return candidate;
+  }
+  return "powershell.exe";
 }
 
 function loadRuntimeConfig() {
@@ -95,6 +118,7 @@ const RECOVERY_SESSION = runtimeConfig.recoverySession;
 const ROOT = runtimeConfig.root;
 const CONFIG_PATH = runtimeConfig.bridgeConfigPath;
 const OPENCLAW_CONFIG_PATH = runtimeConfig.openclawConfigPath;
+const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
 
 function toErrorMessage(error) {
   return String(error?.message || error);
@@ -226,7 +250,7 @@ function summarizeDiagnostics(diagnostics) {
 }
 
 async function runPowerShell(command) {
-  const { stdout } = await execFileAsync("powershell.exe", [
+  const { stdout } = await execFileAsync(WINDOWS_POWERSHELL_BIN, [
     "-NoProfile",
     "-ExecutionPolicy",
     "Bypass",
