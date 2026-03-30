@@ -227,7 +227,7 @@ function summarizeDiagnostics(diagnostics) {
   if (!diagnostics.auth.tokenLoaded) {
     issues.push({ code: "recovery_auth_missing", message: "Recovery auth token is not loaded." });
   }
-  if (!diagnostics.sessions.bridge.running) {
+  if (!diagnostics.sessions.bridge.running && !diagnostics.pids.bridge.running) {
     issues.push({ code: "bridge_session_down", message: "Bridge tmux session is not running." });
   }
   if (!diagnostics.pids.bridge.running) {
@@ -236,7 +236,7 @@ function summarizeDiagnostics(diagnostics) {
   if (!diagnostics.bridge.ok) {
     issues.push({ code: "bridge_unreachable", message: "Bridge health check failed." });
   }
-  if (!diagnostics.sessions.recovery.running) {
+  if (!diagnostics.sessions.recovery.running && !diagnostics.pids.recovery.running) {
     issues.push({ code: "recovery_session_down", message: "Recovery tmux session is not running." });
   }
   if (!diagnostics.pids.recovery.running) {
