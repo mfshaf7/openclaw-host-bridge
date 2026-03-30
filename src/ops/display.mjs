@@ -90,10 +90,27 @@ $result = [intptr]::Zero
 `);
   } else {
     await runPowerShell(`
-Add-Type -AssemblyName System.Windows.Forms;
-[System.Windows.Forms.SendKeys]::SendWait("{SCROLLLOCK}");
-Start-Sleep -Milliseconds 100
-[System.Windows.Forms.SendKeys]::SendWait("{SCROLLLOCK}")
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public struct POINT {
+  public int X;
+  public int Y;
+}
+public static class NativeMouseWake {
+  [DllImport("user32.dll")]
+  public static extern bool GetCursorPos(out POINT lpPoint);
+
+  [DllImport("user32.dll")]
+  public static extern bool SetCursorPos(int X, int Y);
+}
+"@;
+$point = New-Object POINT
+if ([NativeMouseWake]::GetCursorPos([ref]$point)) {
+  [NativeMouseWake]::SetCursorPos($point.X + 1, $point.Y) | Out-Null
+  Start-Sleep -Milliseconds 120
+  [NativeMouseWake]::SetCursorPos($point.X, $point.Y) | Out-Null
+}
 `);
   }
   return { powered: action };
