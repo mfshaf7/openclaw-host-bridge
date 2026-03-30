@@ -93,23 +93,47 @@ $result = [intptr]::Zero
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
-public struct POINT {
-  public int X;
-  public int Y;
-}
 public static class NativeMouseWake {
-  [DllImport("user32.dll")]
-  public static extern bool GetCursorPos(out POINT lpPoint);
+  [StructLayout(LayoutKind.Sequential)]
+  public struct INPUT {
+    public UInt32 type;
+    public MOUSEINPUT mi;
+  }
 
-  [DllImport("user32.dll")]
-  public static extern bool SetCursorPos(int X, int Y);
+  [StructLayout(LayoutKind.Sequential)]
+  public struct MOUSEINPUT {
+    public Int32 dx;
+    public Int32 dy;
+    public UInt32 mouseData;
+    public UInt32 dwFlags;
+    public UInt32 time;
+    public IntPtr dwExtraInfo;
+  }
+
+  [DllImport("user32.dll", SetLastError = true)]
+  public static extern UInt32 SendInput(UInt32 nInputs, INPUT[] pInputs, Int32 cbSize);
 }
 "@;
-$point = New-Object POINT
-if ([NativeMouseWake]::GetCursorPos([ref]$point)) {
-  [NativeMouseWake]::SetCursorPos($point.X + 1, $point.Y) | Out-Null
-  Start-Sleep -Milliseconds 120
-  [NativeMouseWake]::SetCursorPos($point.X, $point.Y) | Out-Null
+$inputs = New-Object NativeMouseWake+INPUT[] 2
+$inputs[0].type = 0
+$inputs[0].mi.dx = 8
+$inputs[0].mi.dy = 0
+$inputs[0].mi.dwFlags = 0x0001
+$inputs[1].type = 0
+$inputs[1].mi.dx = -8
+$inputs[1].mi.dy = 0
+$inputs[1].mi.dwFlags = 0x0001
+[NativeMouseWake]::SendInput([uint32]$inputs.Length, $inputs, [System.Runtime.InteropServices.Marshal]::SizeOf([type][NativeMouseWake+INPUT])) | Out-Null
+Start-Sleep -Milliseconds 120
+$inputs[0].mi.dx = 0
+$inputs[0].mi.dy = 8
+$inputs[1].mi.dx = 0
+$inputs[1].mi.dy = -8
+[NativeMouseWake]::SendInput([uint32]$inputs.Length, $inputs, [System.Runtime.InteropServices.Marshal]::SizeOf([type][NativeMouseWake+INPUT])) | Out-Null
+Start-Sleep -Milliseconds 120
+Add-Type -AssemblyName System.Windows.Forms;
+if ([System.Windows.Forms.Control]::IsKeyLocked([System.Windows.Forms.Keys]::Scroll)) {
+  [System.Windows.Forms.SendKeys]::SendWait("{SCROLLLOCK}")
 }
 `);
   }
