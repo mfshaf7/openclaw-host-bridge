@@ -102,6 +102,9 @@ function loadRuntimeConfig() {
     bridgePort,
     session: process.env.OPENCLAW_HOST_BRIDGE_TMUX_SESSION || "openclaw-host-bridge",
     recoverySession,
+    bridgeSystemdUnit: process.env.OPENCLAW_HOST_BRIDGE_SYSTEMD_UNIT || "openclaw-host-bridge.service",
+    recoverySystemdUnit:
+      process.env.OPENCLAW_HOST_RECOVERY_SYSTEMD_UNIT || "openclaw-host-recovery.service",
     root,
     bridgeConfigPath,
     openclawConfigPath,
@@ -157,10 +160,81 @@ async function checkBridge() {
 async function checkTmuxSession(sessionName) {
   try {
     await execFileAsync("tmux", ["has-session", "-t", sessionName]);
-    return { ok: true, running: true, session: sessionName };
+    return { ok: true, running: true, session: sessionName, source: "tmux" };
   } catch (error) {
-    return { ok: false, running: false, session: sessionName, error: toErrorMessage(error) };
+    return { ok: false, running: false, session: sessionName, source: "tmux", error: toErrorMessage(error) };
   }
+}
+
+async function checkSystemdUnit(unitName) {
+  try {
+    const { stdout: activeStdout } = await execFileAsync("systemctl", ["is-active", unitName]);
+    const activeState = String(activeStdout || "").trim();
+    const { stdout: showStdout } = await execFileAsync("systemctl", [
+      "show",
+      unitName,
+      "--property=SubState,MainPID,LoadState,UnitFileState",
+    ]);
+    const properties = Object.fromEntries(
+      String(showStdout || "")
+      .split(/\r?\n/)
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .map((entry) => {
+        const pivot = entry.indexOf("=");
+        if (pivot === -1) {
+          return [entry, ""];
+        }
+        return [entry.slice(0, pivot), entry.slice(pivot + 1)];
+      }),
+    );
+    const subState = typeof properties.SubState === "string" ? properties.SubState : "";
+    const mainPid = typeof properties.MainPID === "string" ? properties.MainPID : "";
+    const loadState = typeof properties.LoadState === "string" ? properties.LoadState : "";
+    const unitFileState =
+      typeof properties.UnitFileState === "string" ? properties.UnitFileState : "";
+    return {
+      ok: activeState === "active",
+      running: activeState === "active",
+      source: "systemd",
+      unit: unitName,
+      activeState,
+      subState,
+      mainPid: mainPid ? Number.parseInt(mainPid, 10) || null : null,
+      loadState,
+      unitFileState,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      running: false,
+      source: "systemd",
+      unit: unitName,
+      error: toErrorMessage(error),
+    };
+  }
+}
+
+async function checkSupervisor(sessionName, systemdUnit) {
+  const systemd = await checkSystemdUnit(systemdUnit);
+  if (systemd.running) {
+    return {
+      ok: true,
+      running: true,
+      session: sessionName,
+      source: "systemd",
+      unit: systemdUnit,
+      activeState: systemd.activeState,
+      subState: systemd.subState,
+      mainPid: systemd.mainPid,
+    };
+  }
+  const tmux = await checkTmuxSession(sessionName);
+  return {
+    ...tmux,
+    unit: systemdUnit,
+    systemd,
+  };
 }
 
 function readPidStatus(pidPath) {
@@ -184,8 +258,8 @@ async function buildDiagnostics() {
   const bridge = await checkBridge();
   const bridgePid = readPidStatus(path.join(ROOT, "tmp", "openclaw-host-bridge.pid"));
   const recoveryPid = readPidStatus(path.join(ROOT, "tmp", "openclaw-host-recovery.pid"));
-  const bridgeSession = await checkTmuxSession(SESSION);
-  const recoverySession = await checkTmuxSession(RECOVERY_SESSION);
+  const bridgeSession = await checkSupervisor(SESSION, runtimeConfig.bridgeSystemdUnit);
+  const recoverySession = await checkSupervisor(RECOVERY_SESSION, runtimeConfig.recoverySystemdUnit);
   return {
     timestamp: new Date().toISOString(),
     bridge,
