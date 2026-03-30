@@ -2,17 +2,22 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
 
 const execFileAsync = promisify(execFile);
+const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
 
-async function runPowerShell(command) {
-  await execFileAsync("powershell.exe", [
+async function runPowerShell(command, timeout = 15000) {
+  await execFileAsync(WINDOWS_POWERSHELL_BIN, [
     "-NoProfile",
     "-ExecutionPolicy",
     "Bypass",
     "-Command",
     command,
-  ]);
+  ], {
+    timeout,
+    maxBuffer: 1024 * 1024,
+  });
 }
 
 function toWindowsPath(value) {
@@ -69,10 +74,19 @@ using System;
 using System.Runtime.InteropServices;
 public static class NativeMonitorPower {
   [DllImport("user32.dll", CharSet = CharSet.Auto)]
-  public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+  public static extern IntPtr SendMessageTimeout(
+    IntPtr hWnd,
+    UInt32 Msg,
+    IntPtr wParam,
+    IntPtr lParam,
+    UInt32 fuFlags,
+    UInt32 uTimeout,
+    out IntPtr lpdwResult
+  );
 }
 "@;
-[NativeMonitorPower]::SendMessage([intptr]0xffff, 0x0112, [intptr]0xF170, [intptr]2) | Out-Null
+$result = [intptr]::Zero
+[NativeMonitorPower]::SendMessageTimeout([intptr]0xffff, 0x0112, [intptr]0xF170, [intptr]2, 0x0002, 2000, [ref]$result) | Out-Null
 `);
   } else {
     await runPowerShell(`
@@ -91,7 +105,7 @@ Add-Type -AssemblyName System.Windows.Forms;
 [System.Windows.Forms.Screen]::AllScreens.Count
 `;
   const { stdout: countStdout } = await execFileAsync(
-    "powershell.exe",
+    WINDOWS_POWERSHELL_BIN,
     ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", probeScript],
     { timeout: 5000, maxBuffer: 256 * 1024 },
   );

@@ -2,8 +2,10 @@ import os from "node:os";
 import fs from "node:fs/promises";
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
+import { resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
 
 const execFile = promisify(execFileCallback);
+const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
 
 function isWsl() {
   return Boolean(process.env.WSL_DISTRO_NAME) || /microsoft/i.test(os.release());
@@ -63,7 +65,7 @@ async function safeFetchJson(url, timeoutMs = 1500) {
 async function execPowerShellJson(script, timeoutMs = 3000) {
   try {
     const { stdout } = await execFile(
-      "powershell.exe",
+      WINDOWS_POWERSHELL_BIN,
       [
         "-NoProfile",
         "-ExecutionPolicy",

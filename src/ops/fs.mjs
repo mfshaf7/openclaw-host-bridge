@@ -3,8 +3,10 @@ import path from "node:path";
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 import { resolveAllowedPath } from "../policy.mjs";
+import { resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
 
 const execFile = promisify(execFileCallback);
+const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
 const PROTECTED_WINDOWS_NAMES = new Set([
   "system volume information",
   "$recycle.bin",
@@ -73,7 +75,7 @@ async function runWindowsMoveFallback(source, destination) {
         `Move-Item -LiteralPath '${sourceWindows.replace(/'/g, "''")}' -Destination '${destinationWindows.replace(/'/g, "''")}'`,
       ].join("; ");
   await execFile(
-    "powershell.exe",
+    WINDOWS_POWERSHELL_BIN,
     ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
     { timeout: 5000, maxBuffer: 512 * 1024 },
   );
