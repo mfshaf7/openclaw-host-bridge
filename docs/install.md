@@ -77,22 +77,30 @@ Expected result:
 
 ## 5. Install The Persistent Startup Path
 
-Use the provided tmux-backed WSL startup path for persistence.
+Use the supported `systemd`-owned WSL startup path for persistence.
 
 Relevant scripts:
 
 - `scripts/start-openclaw-host-bridge.sh`
+- `scripts/start-openclaw-host-recovery.sh`
 - `scripts/run-openclaw-host-bridge-supervisor.sh`
-- `scripts/start-openclaw-host-bridge-tmux.sh`
-- `scripts/start-openclaw-host-bridge-hidden.ps1`
-- `scripts/register-openclaw-host-bridge-task.ps1`
-- `scripts/register-openclaw-host-bridge-hidden-task.ps1`
+- `scripts/run-openclaw-host-recovery-supervisor.sh`
+- `scripts/register-openclaw-host-stack-task.ps1`
+- `scripts/status-openclaw-host-stack.sh`
 
 Recommended flow:
 
 1. validate foreground startup first with `scripts/start-openclaw-host-bridge.sh`
-2. validate persistent WSL startup with `scripts/start-openclaw-host-bridge-tmux.sh`
-3. only then wire in the Windows launcher or logon task
+2. validate foreground startup for recovery with `scripts/start-openclaw-host-recovery.sh`
+3. start the supported persistent stack with `systemctl start openclaw-host-stack.target`
+4. verify status with `systemctl status openclaw-host-stack.target openclaw-host-bridge.service openclaw-host-recovery.service`
+5. only then wire in the Windows logon task with `scripts/register-openclaw-host-stack-task.ps1`
+
+Legacy/manual fallback only:
+
+- `scripts/start-openclaw-host-bridge-tmux.sh`
+- `scripts/start-openclaw-host-stack-tmux.sh`
+- `scripts/start-openclaw-host-stack-hidden.ps1`
 
 The exact startup method should be validated once in the target environment after install and after reboot/logon.
 

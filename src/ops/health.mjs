@@ -104,6 +104,42 @@ async function execDockerInspect() {
   }
 }
 
+async function getGatewayStatus() {
+  const dockerState = await execDockerInspect();
+  if (dockerState) {
+    return {
+      source: "docker",
+      ok:
+        dockerState.Status === "running" &&
+        ((dockerState.Health && dockerState.Health.Status === "healthy") || !dockerState.Health),
+      status: dockerState.Status,
+      health: dockerState.Health?.Status || null,
+    };
+  }
+  const gatewayHealthUrl =
+    process.env.OPENCLAW_GATEWAY_HEALTH_URL || "http://127.0.0.1:18789/healthz";
+  const httpState = await safeFetchJson(gatewayHealthUrl, 1500);
+  if (httpState.ok) {
+    const body =
+      httpState.body && typeof httpState.body === "object" && !Array.isArray(httpState.body)
+        ? httpState.body
+        : null;
+    return {
+      source: "http",
+      url: gatewayHealthUrl,
+      ok: body?.ok === true || httpState.status === 200,
+      status: httpState.status,
+      body,
+    };
+  }
+  return {
+    source: "http",
+    url: gatewayHealthUrl,
+    ok: false,
+    error: httpState.error || "gateway health check failed",
+  };
+}
+
 async function sampleCpuUtilizationPercent() {
   const first = os.cpus();
   await new Promise((resolve) => setTimeout(resolve, 150));
@@ -225,7 +261,7 @@ export async function healthCheck(config) {
       getWindowsPanelInfo(),
       getWindowsPublicIp(),
       getWindowsNvidiaGpuInfo(),
-      execDockerInspect(),
+      getGatewayStatus(),
       getOllamaStatus(),
     ]);
 
@@ -331,17 +367,12 @@ export async function healthCheck(config) {
       detected: isWsl(),
       ok: isWsl(),
     },
-    gateway: gatewayState
-      ? {
-          ok:
-            gatewayState.Status === "running" &&
-            ((gatewayState.Health && gatewayState.Health.Status === "healthy") || !gatewayState.Health),
-          status: gatewayState.Status,
-          health: gatewayState.Health?.Status || null,
-        }
-      : {
-          ok: false,
-        },
+    gateway:
+      gatewayState && typeof gatewayState === "object"
+        ? gatewayState
+        : {
+            ok: false,
+          },
     ollama:
       ollama && typeof ollama === "object"
         ? ollama
