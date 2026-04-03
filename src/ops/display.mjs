@@ -93,48 +93,35 @@ $result = [intptr]::Zero
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
-public static class NativeMouseWake {
-  [StructLayout(LayoutKind.Sequential)]
-  public struct INPUT {
-    public UInt32 type;
-    public MOUSEINPUT mi;
-  }
-
-  [StructLayout(LayoutKind.Sequential)]
-  public struct MOUSEINPUT {
-    public Int32 dx;
-    public Int32 dy;
-    public UInt32 mouseData;
-    public UInt32 dwFlags;
-    public UInt32 time;
-    public IntPtr dwExtraInfo;
-  }
+public static class NativeDisplayWake {
+  [DllImport("kernel32.dll", SetLastError = true)]
+  public static extern UInt32 SetThreadExecutionState(UInt32 esFlags);
 
   [DllImport("user32.dll", SetLastError = true)]
-  public static extern UInt32 SendInput(UInt32 nInputs, INPUT[] pInputs, Int32 cbSize);
+  public static extern void mouse_event(UInt32 dwFlags, UInt32 dx, UInt32 dy, UInt32 dwData, UIntPtr dwExtraInfo);
+
+  [DllImport("user32.dll", SetLastError = true)]
+  public static extern void keybd_event(byte bVk, byte bScan, UInt32 dwFlags, UIntPtr dwExtraInfo);
 }
 "@;
-$inputs = New-Object NativeMouseWake+INPUT[] 2
-$inputs[0].type = 0
-$inputs[0].mi.dx = 8
-$inputs[0].mi.dy = 0
-$inputs[0].mi.dwFlags = 0x0001
-$inputs[1].type = 0
-$inputs[1].mi.dx = -8
-$inputs[1].mi.dy = 0
-$inputs[1].mi.dwFlags = 0x0001
-[NativeMouseWake]::SendInput([uint32]$inputs.Length, $inputs, [System.Runtime.InteropServices.Marshal]::SizeOf([type][NativeMouseWake+INPUT])) | Out-Null
-Start-Sleep -Milliseconds 120
-$inputs[0].mi.dx = 0
-$inputs[0].mi.dy = 8
-$inputs[1].mi.dx = 0
-$inputs[1].mi.dy = -8
-[NativeMouseWake]::SendInput([uint32]$inputs.Length, $inputs, [System.Runtime.InteropServices.Marshal]::SizeOf([type][NativeMouseWake+INPUT])) | Out-Null
-Start-Sleep -Milliseconds 120
-Add-Type -AssemblyName System.Windows.Forms;
-if ([System.Windows.Forms.Control]::IsKeyLocked([System.Windows.Forms.Keys]::Scroll)) {
-  [System.Windows.Forms.SendKeys]::SendWait("{SCROLLLOCK}")
+[NativeDisplayWake]::SetThreadExecutionState(0x80000003) | Out-Null
+Start-Sleep -Milliseconds 150
+
+for ($i = 0; $i -lt 3; $i++) {
+  [NativeDisplayWake]::mouse_event(0x0001, 12, 0, 0, [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 60
+  [NativeDisplayWake]::mouse_event(0x0001, 0, 12, 0, [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 60
+  [NativeDisplayWake]::mouse_event(0x0001, 4294967284, 0, 0, [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 60
+  [NativeDisplayWake]::mouse_event(0x0001, 0, 4294967284, 0, [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 90
 }
+
+[NativeDisplayWake]::keybd_event(0x10, 0, 0, [UIntPtr]::Zero)
+Start-Sleep -Milliseconds 80
+[NativeDisplayWake]::keybd_event(0x10, 0, 0x0002, [UIntPtr]::Zero)
+[NativeDisplayWake]::SetThreadExecutionState(0x80000000) | Out-Null
 `);
   }
   return { powered: action };
