@@ -104,7 +104,7 @@ public static class NativeDisplayWake {
   public static extern void keybd_event(byte bVk, byte bScan, UInt32 dwFlags, UIntPtr dwExtraInfo);
 }
 "@;
-[NativeDisplayWake]::SetThreadExecutionState([uint32]0x80000003) | Out-Null
+[NativeDisplayWake]::SetThreadExecutionState([uint32]2147483651) | Out-Null
 Start-Sleep -Milliseconds 150
 
 for ($i = 0; $i -lt 3; $i++) {
@@ -121,7 +121,7 @@ for ($i = 0; $i -lt 3; $i++) {
 [NativeDisplayWake]::keybd_event(0x10, 0, 0, [UIntPtr]::Zero)
 Start-Sleep -Milliseconds 80
 [NativeDisplayWake]::keybd_event(0x10, 0, 0x0002, [UIntPtr]::Zero)
-[NativeDisplayWake]::SetThreadExecutionState([uint32]0x80000000) | Out-Null
+[NativeDisplayWake]::SetThreadExecutionState([uint32]2147483648) | Out-Null
 `);
   }
   return { powered: action };
