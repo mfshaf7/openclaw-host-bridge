@@ -18,9 +18,39 @@ OPENCLAW_CONFIG_PATH_VALUE="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_HOME_DIR/openclaw.
 PID_PATH="${OPENCLAW_HOST_RECOVERY_PID_PATH:-$ROOT/tmp/openclaw-host-recovery.pid}"
 LOCK_PATH="${OPENCLAW_HOST_RECOVERY_LOCK_PATH:-$ROOT/tmp/openclaw-host-recovery.lock}"
 LOG_PATH="${OPENCLAW_HOST_RECOVERY_LOG_PATH:-$ROOT/tmp/openclaw-host-recovery.log}"
-NODE_BIN_DIR="${OPENCLAW_HOST_BRIDGE_NODE_BIN_DIR:-$HOME/.nvm/versions/node/v24.14.0/bin}"
+NODE_BIN_DIR="${OPENCLAW_HOST_BRIDGE_NODE_BIN_DIR:-}"
 SERVER="$ROOT/scripts/openclaw-host-recovery-server.mjs"
 
+resolve_node_bin_dir() {
+  if [[ -n "$NODE_BIN_DIR" && -x "$NODE_BIN_DIR/node" ]]; then
+    printf '%s\n' "$NODE_BIN_DIR"
+    return 0
+  fi
+
+  local candidate
+  for candidate in \
+    "$HOME/.nvm/versions/node/current/bin" \
+    "$HOME/.nvm/versions/node"/*/bin
+  do
+    if [[ -x "$candidate/node" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  printf '%s\n' ""
+}
+
+pid_matches_server() {
+  local pid="$1"
+  [[ -n "$pid" ]] || return 1
+  kill -0 "$pid" 2>/dev/null || return 1
+  local cmdline
+  cmdline="$(tr '\0' ' ' </proc/"$pid"/cmdline 2>/dev/null || true)"
+  [[ "$cmdline" == *"$SERVER"* ]]
+}
+
+NODE_BIN_DIR="$(resolve_node_bin_dir)"
 export PATH="$NODE_BIN_DIR:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 mkdir -p "$ROOT/tmp"
@@ -66,7 +96,7 @@ fi
 
 if [[ -f "$PID_PATH" ]]; then
   existing_pid="$(cat "$PID_PATH" 2>/dev/null || true)"
-  if [[ -n "${existing_pid:-}" ]] && kill -0 "$existing_pid" 2>/dev/null; then
+  if pid_matches_server "${existing_pid:-}"; then
     echo "openclaw-host-recovery already running with pid $existing_pid"
     exit 0
   fi
