@@ -94,6 +94,12 @@ Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 public static class NativeDisplayWake {
+  [StructLayout(LayoutKind.Sequential)]
+  public struct POINT {
+    public Int32 X;
+    public Int32 Y;
+  }
+
   [DllImport("kernel32.dll", SetLastError = true)]
   public static extern UInt32 SetThreadExecutionState(UInt32 esFlags);
 
@@ -113,6 +119,12 @@ public static class NativeDisplayWake {
 
   [DllImport("user32.dll", SetLastError = true)]
   public static extern void keybd_event(byte bVk, byte bScan, UInt32 dwFlags, UIntPtr dwExtraInfo);
+
+  [DllImport("user32.dll", SetLastError = true)]
+  public static extern bool GetCursorPos(out POINT lpPoint);
+
+  [DllImport("user32.dll", SetLastError = true)]
+  public static extern bool SetCursorPos(Int32 X, Int32 Y);
 }
 "@;
 $result = [IntPtr]::Zero
@@ -130,6 +142,14 @@ Start-Sleep -Milliseconds 120
 [NativeDisplayWake]::keybd_event(0x11, 0, 0x0002, [UIntPtr]::Zero)
 [NativeDisplayWake]::keybd_event(0x5B, 0, 0x0002, [UIntPtr]::Zero)
 Start-Sleep -Milliseconds 500
+
+$cursor = New-Object NativeDisplayWake+POINT
+if ([NativeDisplayWake]::GetCursorPos([ref]$cursor)) {
+  [NativeDisplayWake]::SetCursorPos($cursor.X + 24, $cursor.Y + 24) | Out-Null
+  Start-Sleep -Milliseconds 120
+  [NativeDisplayWake]::SetCursorPos($cursor.X, $cursor.Y) | Out-Null
+  Start-Sleep -Milliseconds 120
+}
 
 for ($i = 0; $i -lt 3; $i++) {
   [NativeDisplayWake]::mouse_event(0x0001, 12, 0, 0, [UIntPtr]::Zero)
