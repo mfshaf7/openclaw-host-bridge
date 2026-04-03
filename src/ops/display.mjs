@@ -136,8 +136,10 @@ Add-Type -AssemblyName System.Windows.Forms;
 if ([System.Windows.Forms.Screen]::AllScreens.Count -gt 1) {
   $displaySwitch = Join-Path $env:SystemRoot 'System32\DisplaySwitch.exe'
   if (Test-Path $displaySwitch) {
+    Start-Process -FilePath $displaySwitch -ArgumentList '/internal' -WindowStyle Hidden -Wait
+    Start-Sleep -Milliseconds 1500
     Start-Process -FilePath $displaySwitch -ArgumentList '/extend' -WindowStyle Hidden -Wait
-    Start-Sleep -Milliseconds 1200
+    Start-Sleep -Milliseconds 1800
   }
 }
 
