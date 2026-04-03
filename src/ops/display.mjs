@@ -132,6 +132,15 @@ $result = [IntPtr]::Zero
 [NativeDisplayWake]::SetThreadExecutionState([uint32]2147483651) | Out-Null
 Start-Sleep -Milliseconds 150
 
+Add-Type -AssemblyName System.Windows.Forms;
+if ([System.Windows.Forms.Screen]::AllScreens.Count -gt 1) {
+  $displaySwitch = Join-Path $env:SystemRoot 'System32\DisplaySwitch.exe'
+  if (Test-Path $displaySwitch) {
+    Start-Process -FilePath $displaySwitch -ArgumentList '/extend' -WindowStyle Hidden -Wait
+    Start-Sleep -Milliseconds 1200
+  }
+}
+
 [NativeDisplayWake]::keybd_event(0x5B, 0, 0, [UIntPtr]::Zero)
 [NativeDisplayWake]::keybd_event(0x11, 0, 0, [UIntPtr]::Zero)
 [NativeDisplayWake]::keybd_event(0x10, 0, 0, [UIntPtr]::Zero)
