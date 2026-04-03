@@ -93,90 +93,48 @@ $result = [intptr]::Zero
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
-public static class NativeDisplayWake {
+public static class NativeMouseWake {
   [StructLayout(LayoutKind.Sequential)]
-  public struct POINT {
-    public Int32 X;
-    public Int32 Y;
+  public struct INPUT {
+    public UInt32 type;
+    public MOUSEINPUT mi;
   }
 
-  [DllImport("kernel32.dll", SetLastError = true)]
-  public static extern UInt32 SetThreadExecutionState(UInt32 esFlags);
-
-  [DllImport("user32.dll", CharSet = CharSet.Auto)]
-  public static extern IntPtr SendMessageTimeout(
-    IntPtr hWnd,
-    UInt32 Msg,
-    IntPtr wParam,
-    IntPtr lParam,
-    UInt32 fuFlags,
-    UInt32 uTimeout,
-    out IntPtr lpdwResult
-  );
+  [StructLayout(LayoutKind.Sequential)]
+  public struct MOUSEINPUT {
+    public Int32 dx;
+    public Int32 dy;
+    public UInt32 mouseData;
+    public UInt32 dwFlags;
+    public UInt32 time;
+    public IntPtr dwExtraInfo;
+  }
 
   [DllImport("user32.dll", SetLastError = true)]
-  public static extern void mouse_event(UInt32 dwFlags, UInt32 dx, UInt32 dy, UInt32 dwData, UIntPtr dwExtraInfo);
-
-  [DllImport("user32.dll", SetLastError = true)]
-  public static extern void keybd_event(byte bVk, byte bScan, UInt32 dwFlags, UIntPtr dwExtraInfo);
-
-  [DllImport("user32.dll", SetLastError = true)]
-  public static extern bool GetCursorPos(out POINT lpPoint);
-
-  [DllImport("user32.dll", SetLastError = true)]
-  public static extern bool SetCursorPos(Int32 X, Int32 Y);
+  public static extern UInt32 SendInput(UInt32 nInputs, INPUT[] pInputs, Int32 cbSize);
 }
 "@;
-$result = [IntPtr]::Zero
-[NativeDisplayWake]::SendMessageTimeout([IntPtr]0xffff, 0x0112, [IntPtr]0xF170, [IntPtr](-1), 0x0002, 1500, [ref]$result) | Out-Null
-[NativeDisplayWake]::SetThreadExecutionState([uint32]2147483651) | Out-Null
-Start-Sleep -Milliseconds 150
-
-Add-Type -AssemblyName System.Windows.Forms;
-if ([System.Windows.Forms.Screen]::AllScreens.Count -gt 1) {
-  $displaySwitch = Join-Path $env:SystemRoot 'System32\DisplaySwitch.exe'
-  if (Test-Path $displaySwitch) {
-    Start-Process -FilePath $displaySwitch -ArgumentList '/internal' -WindowStyle Hidden -Wait
-    Start-Sleep -Milliseconds 1500
-    Start-Process -FilePath $displaySwitch -ArgumentList '/extend' -WindowStyle Hidden -Wait
-    Start-Sleep -Milliseconds 1800
-  }
-}
-
-[NativeDisplayWake]::keybd_event(0x5B, 0, 0, [UIntPtr]::Zero)
-[NativeDisplayWake]::keybd_event(0x11, 0, 0, [UIntPtr]::Zero)
-[NativeDisplayWake]::keybd_event(0x10, 0, 0, [UIntPtr]::Zero)
-[NativeDisplayWake]::keybd_event(0x42, 0, 0, [UIntPtr]::Zero)
+$inputs = New-Object NativeMouseWake+INPUT[] 2
+$inputs[0].type = 0
+$inputs[0].mi.dx = 8
+$inputs[0].mi.dy = 0
+$inputs[0].mi.dwFlags = 0x0001
+$inputs[1].type = 0
+$inputs[1].mi.dx = -8
+$inputs[1].mi.dy = 0
+$inputs[1].mi.dwFlags = 0x0001
+[NativeMouseWake]::SendInput([uint32]$inputs.Length, $inputs, [System.Runtime.InteropServices.Marshal]::SizeOf([type][NativeMouseWake+INPUT])) | Out-Null
 Start-Sleep -Milliseconds 120
-[NativeDisplayWake]::keybd_event(0x42, 0, 0x0002, [UIntPtr]::Zero)
-[NativeDisplayWake]::keybd_event(0x10, 0, 0x0002, [UIntPtr]::Zero)
-[NativeDisplayWake]::keybd_event(0x11, 0, 0x0002, [UIntPtr]::Zero)
-[NativeDisplayWake]::keybd_event(0x5B, 0, 0x0002, [UIntPtr]::Zero)
-Start-Sleep -Milliseconds 500
-
-$cursor = New-Object NativeDisplayWake+POINT
-if ([NativeDisplayWake]::GetCursorPos([ref]$cursor)) {
-  [NativeDisplayWake]::SetCursorPos($cursor.X + 24, $cursor.Y + 24) | Out-Null
-  Start-Sleep -Milliseconds 120
-  [NativeDisplayWake]::SetCursorPos($cursor.X, $cursor.Y) | Out-Null
-  Start-Sleep -Milliseconds 120
+$inputs[0].mi.dx = 0
+$inputs[0].mi.dy = 8
+$inputs[1].mi.dx = 0
+$inputs[1].mi.dy = -8
+[NativeMouseWake]::SendInput([uint32]$inputs.Length, $inputs, [System.Runtime.InteropServices.Marshal]::SizeOf([type][NativeMouseWake+INPUT])) | Out-Null
+Start-Sleep -Milliseconds 120
+Add-Type -AssemblyName System.Windows.Forms;
+if ([System.Windows.Forms.Control]::IsKeyLocked([System.Windows.Forms.Keys]::Scroll)) {
+  [System.Windows.Forms.SendKeys]::SendWait("{SCROLLLOCK}")
 }
-
-for ($i = 0; $i -lt 3; $i++) {
-  [NativeDisplayWake]::mouse_event(0x0001, 12, 0, 0, [UIntPtr]::Zero)
-  Start-Sleep -Milliseconds 60
-  [NativeDisplayWake]::mouse_event(0x0001, 0, 12, 0, [UIntPtr]::Zero)
-  Start-Sleep -Milliseconds 60
-  [NativeDisplayWake]::mouse_event(0x0001, 4294967284, 0, 0, [UIntPtr]::Zero)
-  Start-Sleep -Milliseconds 60
-  [NativeDisplayWake]::mouse_event(0x0001, 0, 4294967284, 0, [UIntPtr]::Zero)
-  Start-Sleep -Milliseconds 90
-}
-
-[NativeDisplayWake]::keybd_event(0x10, 0, 0, [UIntPtr]::Zero)
-Start-Sleep -Milliseconds 80
-[NativeDisplayWake]::keybd_event(0x10, 0, 0x0002, [UIntPtr]::Zero)
-[NativeDisplayWake]::SetThreadExecutionState([uint32]2147483648) | Out-Null
 `);
   }
   return { powered: action };
