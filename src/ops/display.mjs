@@ -97,6 +97,17 @@ public static class NativeDisplayWake {
   [DllImport("kernel32.dll", SetLastError = true)]
   public static extern UInt32 SetThreadExecutionState(UInt32 esFlags);
 
+  [DllImport("user32.dll", CharSet = CharSet.Auto)]
+  public static extern IntPtr SendMessageTimeout(
+    IntPtr hWnd,
+    UInt32 Msg,
+    IntPtr wParam,
+    IntPtr lParam,
+    UInt32 fuFlags,
+    UInt32 uTimeout,
+    out IntPtr lpdwResult
+  );
+
   [DllImport("user32.dll", SetLastError = true)]
   public static extern void mouse_event(UInt32 dwFlags, UInt32 dx, UInt32 dy, UInt32 dwData, UIntPtr dwExtraInfo);
 
@@ -104,6 +115,8 @@ public static class NativeDisplayWake {
   public static extern void keybd_event(byte bVk, byte bScan, UInt32 dwFlags, UIntPtr dwExtraInfo);
 }
 "@;
+$result = [IntPtr]::Zero
+[NativeDisplayWake]::SendMessageTimeout([IntPtr]0xffff, 0x0112, [IntPtr]0xF170, [IntPtr](-1), 0x0002, 1500, [ref]$result) | Out-Null
 [NativeDisplayWake]::SetThreadExecutionState([uint32]2147483651) | Out-Null
 Start-Sleep -Milliseconds 150
 
