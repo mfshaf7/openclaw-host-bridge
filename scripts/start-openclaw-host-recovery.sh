@@ -25,6 +25,39 @@ export PATH="$NODE_BIN_DIR:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sb
 
 mkdir -p "$ROOT/tmp"
 
+KUBECTL_BIN="${OPENCLAW_HOST_RECOVERY_KUBECTL_BIN:-/usr/local/bin/k3s kubectl}"
+KUBECONFIG_PATH="${OPENCLAW_HOST_RECOVERY_KUBECONFIG_PATH:-/etc/rancher/k3s/k3s.yaml}"
+ARGOCD_NAMESPACE="${OPENCLAW_HOST_RECOVERY_ARGOCD_NAMESPACE:-argocd}"
+ARGOCD_REPO_SERVER_SELECTOR="${OPENCLAW_HOST_RECOVERY_ARGOCD_REPO_SERVER_SELECTOR:-app.kubernetes.io/name=argocd-repo-server}"
+
+kube() {
+  KUBECONFIG="$KUBECONFIG_PATH" bash -lc "$KUBECTL_BIN $*"
+}
+
+repair_argocd_repo_server_if_stuck() {
+  local pod_name init_waiting_reason log_output
+
+  pod_name="$(kube "-n $ARGOCD_NAMESPACE get pods -l $ARGOCD_REPO_SERVER_SELECTOR -o jsonpath='{.items[0].metadata.name}'" 2>/dev/null | tr -d "'")"
+  if [[ -z "$pod_name" ]]; then
+    return 0
+  fi
+
+  init_waiting_reason="$(kube "-n $ARGOCD_NAMESPACE get pod $pod_name -o jsonpath='{.status.initContainerStatuses[0].state.waiting.reason}'" 2>/dev/null | tr -d "'")"
+  if [[ "$init_waiting_reason" != "CrashLoopBackOff" ]]; then
+    return 0
+  fi
+
+  log_output="$(kube "-n $ARGOCD_NAMESPACE logs $pod_name -c copyutil --previous" 2>/dev/null || true)"
+  if [[ "$log_output" != *"Already exists"* ]]; then
+    return 0
+  fi
+
+  echo "repairing stuck argocd repo-server pod: $pod_name"
+  kube "-n $ARGOCD_NAMESPACE delete pod $pod_name" >/dev/null
+}
+
+repair_argocd_repo_server_if_stuck
+
 exec 9>"$LOCK_PATH"
 if ! flock -n 9; then
   echo "openclaw-host-recovery startup already in progress"
