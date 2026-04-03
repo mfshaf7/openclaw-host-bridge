@@ -120,6 +120,17 @@ $result = [IntPtr]::Zero
 [NativeDisplayWake]::SetThreadExecutionState([uint32]2147483651) | Out-Null
 Start-Sleep -Milliseconds 150
 
+[NativeDisplayWake]::keybd_event(0x5B, 0, 0, [UIntPtr]::Zero)
+[NativeDisplayWake]::keybd_event(0x11, 0, 0, [UIntPtr]::Zero)
+[NativeDisplayWake]::keybd_event(0x10, 0, 0, [UIntPtr]::Zero)
+[NativeDisplayWake]::keybd_event(0x42, 0, 0, [UIntPtr]::Zero)
+Start-Sleep -Milliseconds 120
+[NativeDisplayWake]::keybd_event(0x42, 0, 0x0002, [UIntPtr]::Zero)
+[NativeDisplayWake]::keybd_event(0x10, 0, 0x0002, [UIntPtr]::Zero)
+[NativeDisplayWake]::keybd_event(0x11, 0, 0x0002, [UIntPtr]::Zero)
+[NativeDisplayWake]::keybd_event(0x5B, 0, 0x0002, [UIntPtr]::Zero)
+Start-Sleep -Milliseconds 500
+
 for ($i = 0; $i -lt 3; $i++) {
   [NativeDisplayWake]::mouse_event(0x0001, 12, 0, 0, [UIntPtr]::Zero)
   Start-Sleep -Milliseconds 60
