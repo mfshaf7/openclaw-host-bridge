@@ -85,8 +85,8 @@ Relevant scripts:
 - `scripts/start-openclaw-host-recovery.sh`
 - `scripts/run-openclaw-host-bridge-supervisor.sh`
 - `scripts/run-openclaw-host-recovery-supervisor.sh`
-- `scripts/register-openclaw-host-stack-task.ps1`
 - `scripts/status-openclaw-host-stack.sh`
+- `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`
 
 Recommended flow:
 
@@ -94,13 +94,12 @@ Recommended flow:
 2. validate foreground startup for recovery with `scripts/start-openclaw-host-recovery.sh`
 3. start the supported persistent stack with `systemctl start openclaw-host-stack.target`
 4. verify status with `systemctl status openclaw-host-stack.target openclaw-host-bridge.service openclaw-host-recovery.service`
-5. only then wire in the Windows logon task with `scripts/register-openclaw-host-stack-task.ps1`
+5. only then wire in the Windows logon task with `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`
 
 Legacy/manual fallback only:
 
 - `scripts/start-openclaw-host-bridge-tmux.sh`
 - `scripts/start-openclaw-host-stack-tmux.sh`
-- `scripts/start-openclaw-host-stack-hidden.ps1`
 
 The exact startup method should be validated once in the target environment after install and after reboot/logon.
 

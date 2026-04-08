@@ -13,7 +13,7 @@ should be revisited in a future maintenance window.
 | Bridge runtime | Working | `/healthz` reachable and bridge restart path verified | Keep ownership path simple and documented |
 | Recovery runtime | Working | `/healthz` reachable and diagnostics/self-heal reachable | Add repair history output |
 | Self-heal for bridge-down scenario | Working | Telegram-triggered repair recovered bridge after forced failure | Add audit trail and explicit repair history |
-| Windows logon persistence for full stack | Working | `PlatformCoreHostStack` starts the WSL `systemd` host stack | Verify once after a real reboot/logon |
+| Windows logon persistence for full stack | Working | Real reboot/logon verified `PlatformCoreHostStack`, bridge `/healthz`, recovery `/healthz`, and Telegram host-control replies on 2026-04-08 | Re-check only after the next bootstrap-path change |
 | Targeted TypeScript check for host-control dispatcher | Working | `npx tsc -p tsconfig.host-control-check.json` passes | Expand checks only when SDK typing is available |
 
 ## Reboot Checklist
@@ -28,6 +28,12 @@ Run this after a real Windows reboot and logon:
 - confirm recovery `/healthz` returns `200`
 - confirm Telegram host-control topic still answers `host status`
 - confirm Telegram `self heal` still produces a proposal and completes
+
+Latest completed reboot/logon verification:
+
+- 2026-04-08: passed
+- active Windows startup owner: `PlatformCoreHostStack`
+- retired stale Windows startup hook: `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\OpenClawRecovery`
 
 ## Self-Heal Follow-Ups
 

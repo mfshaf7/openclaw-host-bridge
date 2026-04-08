@@ -22,7 +22,8 @@ OpenClaw running in a container or VM does not automatically gain controlled acc
 - the bridge process runs inside WSL
 - Windows files are accessed through `/mnt/<drive>/...`
 - the isolated runtime reaches the bridge over HTTP on the host side
-- startup/persistence is handled through the provided scripts and Windows launcher path
+- startup/persistence is handled through the provided WSL scripts plus the
+  platform-engineering Windows bootstrap artifact
 - the supported persistent host mode on `Platform-Core` uses Windows logon to
   enter WSL and `systemd` to own the bridge and recovery services
 
@@ -53,13 +54,13 @@ Recommended persistence flow:
 1. `scripts/start-openclaw-host-bridge.sh` for foreground validation
 2. `systemctl start openclaw-host-stack.target` inside WSL for the supported
    persistent host path
-3. `scripts/register-openclaw-host-stack-task.ps1` for Windows-side startup
+3. `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`
+   for Windows-side startup
 
 Legacy/manual fallback flow:
 
 - `scripts/start-openclaw-host-bridge-tmux.sh`
 - `scripts/start-openclaw-host-stack-tmux.sh`
-- `scripts/start-openclaw-host-stack-hidden.ps1`
 
 If you want the bridge and recovery listener to come up from the same stable
 config root, use:

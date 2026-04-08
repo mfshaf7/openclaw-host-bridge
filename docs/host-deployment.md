@@ -36,10 +36,10 @@ These committed files make up the supported host deployment bundle:
 - `scripts/start-openclaw-host-stack-tmux.sh`
 - `scripts/stop-openclaw-host-stack.sh`
 - `scripts/status-openclaw-host-stack.sh`
-- `scripts/start-openclaw-host-bridge-hidden.ps1`
-- `scripts/start-openclaw-host-stack-hidden.ps1`
-- `scripts/register-openclaw-host-bridge-task.ps1`
-- `scripts/register-openclaw-host-stack-task.ps1`
+
+Windows task registration for the supported production path is no longer owned
+by this repository. Use the rendered bootstrap artifact from
+`platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`.
 
 ## Local Files Operators Must Create
 
@@ -62,7 +62,7 @@ Foreground validation:
 Supported persistent WSL host mode:
 
 - `systemctl start openclaw-host-stack.target`
-- `scripts/register-openclaw-host-stack-task.ps1`
+- `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`
 
 Legacy/manual persistent mode:
 
@@ -74,16 +74,6 @@ Restart loop inside WSL:
 
 - `scripts/run-openclaw-host-bridge-supervisor.sh`
 - `scripts/run-openclaw-host-recovery-supervisor.sh`
-
-Windows launcher:
-
-- `scripts/start-openclaw-host-bridge-hidden.ps1`
-- `scripts/start-openclaw-host-stack-hidden.ps1`
-
-Windows logon task:
-
-- `scripts/register-openclaw-host-bridge-task.ps1`
-- `scripts/register-openclaw-host-stack-task.ps1`
 
 ## Why tmux Still Exists
 
@@ -97,7 +87,8 @@ operation.
 - a way to inspect the running host session later
 
 For the current `Platform-Core` deployment, `systemd` is the supported runtime
-owner and Windows only provides the logon-triggered WSL entry.
+owner and Windows only provides the logon-triggered WSL entry through the
+platform-engineering bootstrap artifact.
 
 ## Verification Standard
 
