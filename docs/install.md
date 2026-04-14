@@ -96,6 +96,14 @@ Recommended flow:
 4. verify status with `systemctl status openclaw-host-stack.target openclaw-host-bridge.service openclaw-host-recovery.service`
 5. only then wire in the Windows logon task with `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`
 
+
+Windows health snapshot path for full host health data:
+
+- copy `scripts/platform-core-windows-health.ps1` to `C:\ProgramData\OpenClaw\Platform-Core\platform-core-windows-health.ps1`
+- copy `scripts/launch-platform-core-windows-health.cmd` to `C:\ProgramData\OpenClaw\Platform-Core\launch-platform-core-windows-health.cmd`
+- create a Startup entry that calls the launcher
+- set `OPENCLAW_WINDOWS_HEALTH_SNAPSHOT=/mnt/c/ProgramData/OpenClaw/Platform-Core/runtime/windows-health.json` in the WSL bridge environment when you want snapshot-backed Windows health
+
 Legacy/manual fallback only:
 
 - `scripts/start-openclaw-host-bridge-tmux.sh`

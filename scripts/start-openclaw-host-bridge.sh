@@ -40,6 +40,22 @@ resolve_node_bin_dir() {
   printf '%s\n' ""
 }
 
+ensure_wsl_interop() {
+  if [[ -n "${WSL_INTEROP:-}" && -S "${WSL_INTEROP}" ]]; then
+    return 0
+  fi
+
+  local candidate
+  for candidate in /run/WSL/*_interop; do
+    if [[ -S "$candidate" ]]; then
+      export WSL_INTEROP="$candidate"
+      return 0
+    fi
+  done
+
+  return 0
+}
+
 pid_matches_bridge() {
   local pid="$1"
   [[ -n "$pid" ]] || return 1
@@ -51,6 +67,7 @@ pid_matches_bridge() {
 
 NODE_BIN_DIR="$(resolve_node_bin_dir)"
 export PATH="$NODE_BIN_DIR:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
+ensure_wsl_interop
 
 mkdir -p "$ROOT/tmp"
 

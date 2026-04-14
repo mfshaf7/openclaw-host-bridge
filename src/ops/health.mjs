@@ -6,6 +6,8 @@ import { resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
 
 const execFile = promisify(execFileCallback);
 const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
+const DEFAULT_WINDOWS_HEALTH_SNAPSHOT = "/mnt/c/ProgramData/OpenClaw/Platform-Core/runtime/windows-health.json";
+const WINDOWS_HEALTH_SNAPSHOT_MAX_AGE_MS = 2 * 60 * 1000;
 
 function isWsl() {
   return Boolean(process.env.WSL_DISTRO_NAME) || /microsoft/i.test(os.release());
@@ -169,6 +171,40 @@ async function sampleCpuUtilizationPercent() {
   return Math.max(0, Math.min(100, Math.round(((totalDelta - idleDelta) / totalDelta) * 100)));
 }
 
+async function resolveWindowsHealthSnapshotPath() {
+  if (process.env.OPENCLAW_WINDOWS_HEALTH_SNAPSHOT) {
+    return process.env.OPENCLAW_WINDOWS_HEALTH_SNAPSHOT;
+  }
+  return DEFAULT_WINDOWS_HEALTH_SNAPSHOT;
+}
+
+async function readWindowsHealthSnapshot() {
+  if (!isWsl()) {
+    return null;
+  }
+  const snapshotPath = await resolveWindowsHealthSnapshotPath();
+  try {
+    const raw = await fs.readFile(snapshotPath, "utf8");
+    const parsed = JSON.parse(raw);
+    const generatedAtMs = Date.parse(parsed?.generatedAt || "");
+    const ageMs = Number.isFinite(generatedAtMs) ? Date.now() - generatedAtMs : null;
+    return {
+      path: snapshotPath,
+      ageMs,
+      ok: ageMs !== null && ageMs <= WINDOWS_HEALTH_SNAPSHOT_MAX_AGE_MS,
+      data: parsed,
+    };
+  } catch (error) {
+    return {
+      path: snapshotPath,
+      ok: false,
+      error: String(error?.message || error),
+      data: null,
+      ageMs: null,
+    };
+  }
+}
+
 async function getWindowsPanelInfo() {
   const script = [
     "$ErrorActionPreference = 'Stop'",
@@ -185,7 +221,7 @@ async function getWindowsPanelInfo() {
     "  display = @{ width = $bounds.Width; height = $bounds.Height; refreshHz = $video.CurrentRefreshRate }",
     "} | ConvertTo-Json -Depth 6 -Compress",
   ].join("\n");
-  return await execPowerShellJson(script, 5000);
+  return await execPowerShellJson(script, 10000);
 }
 
 async function getWindowsPublicIp() {
@@ -202,7 +238,7 @@ async function getWindowsPublicIp() {
       "if ($publicIp) { @{ ok = $true; address = $publicIp; provider = 'windows:web' } | ConvertTo-Json -Compress }",
       "else { @{ ok = $false } | ConvertTo-Json -Compress }",
     ].join("\n"),
-    5000,
+    10000,
   );
 }
 
@@ -228,7 +264,7 @@ async function getWindowsNvidiaGpuInfo() {
     "  clockMhz = [int]$parts[5]",
     "} | ConvertTo-Json -Compress",
   ].join("\n");
-  return await execPowerShellJson(script, 5000);
+  return await execPowerShellJson(script, 8000);
 }
 
 async function getOllamaStatus() {
@@ -246,24 +282,25 @@ async function getOllamaStatus() {
       "  @{ ok = $false; error = $_.Exception.Message } | ConvertTo-Json -Compress",
       "}",
     ].join("\n"),
-    4000,
+    8000,
   );
   return windowsResult || localResult;
 }
 
 export async function healthCheck(config) {
-  const [allowedRoots, stagingDir, auditDir, cpuUtilizationPercent, windowsPanel, windowsPublicIp, windowsGpu, gatewayState, ollama] =
-    await Promise.all([
-      Promise.all(config.allowedRoots.map((root) => pathState(root))),
-      pathState(config.stagingDir),
-      pathState(config.auditDir),
-      sampleCpuUtilizationPercent(),
-      getWindowsPanelInfo(),
-      getWindowsPublicIp(),
-      getWindowsNvidiaGpuInfo(),
-      getGatewayStatus(),
-      getOllamaStatus(),
-    ]);
+  const [allowedRoots, stagingDir, auditDir, cpuUtilizationPercent, gatewayState, snapshotState] = await Promise.all([
+    Promise.all(config.allowedRoots.map((root) => pathState(root))),
+    pathState(config.stagingDir),
+    pathState(config.auditDir),
+    sampleCpuUtilizationPercent(),
+    getGatewayStatus(),
+    readWindowsHealthSnapshot(),
+  ]);
+
+  const windowsPanel = snapshotState?.ok ? snapshotState.data?.panel ?? null : await getWindowsPanelInfo();
+  const windowsPublicIp = snapshotState?.ok ? snapshotState.data?.panel?.publicIp ?? null : await getWindowsPublicIp();
+  const windowsGpu = snapshotState?.ok ? snapshotState.data?.panel?.gpu ?? null : await getWindowsNvidiaGpuInfo();
+  const ollama = snapshotState?.ok ? snapshotState.data?.ollama ?? null : await getOllamaStatus();
 
   const cpuInfo = os.cpus();
   const totalBytes = os.totalmem();
@@ -293,12 +330,16 @@ export async function healthCheck(config) {
               : null,
             vramUsedBytes: Number.isFinite(Number(windowsGpu?.vramUsedMB))
               ? Number(windowsGpu.vramUsedMB) * 1024 * 1024
-              : null,
+              : Number.isFinite(Number(windowsGpu?.vramUsedBytes))
+                ? Number(windowsGpu.vramUsedBytes)
+                : null,
             vramTotalBytes: Number.isFinite(Number(windowsGpu?.vramTotalMB))
               ? Number(windowsGpu.vramTotalMB) * 1024 * 1024
-              : Number.isFinite(Number(windowsPanel?.gpu?.vramTotalBytes))
-                ? Number(windowsPanel.gpu.vramTotalBytes)
-                : null,
+              : Number.isFinite(Number(windowsGpu?.vramTotalBytes))
+                ? Number(windowsGpu.vramTotalBytes)
+                : Number.isFinite(Number(windowsPanel?.gpu?.vramTotalBytes))
+                  ? Number(windowsPanel.gpu.vramTotalBytes)
+                  : null,
             clockMhz: Number.isFinite(Number(windowsGpu?.clockMhz)) ? Number(windowsGpu.clockMhz) : null,
           }
         : undefined,
@@ -381,6 +422,18 @@ export async function healthCheck(config) {
           },
   };
 
+  const diagnostics = {
+    windowsSnapshot:
+      snapshotState && typeof snapshotState === "object"
+        ? {
+            path: snapshotState.path,
+            ok: snapshotState.ok,
+            ageMs: snapshotState.ageMs,
+            error: snapshotState.error || null,
+          }
+        : undefined,
+  };
+
   const ok =
     bridge.ok === true &&
     host.ok === true &&
@@ -395,6 +448,7 @@ export async function healthCheck(config) {
       host,
       storage,
       integrations,
+      diagnostics,
     },
   };
 }

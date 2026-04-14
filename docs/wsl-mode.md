@@ -36,6 +36,7 @@ OpenClaw running in a container or VM does not automatically gain controlled acc
 - allowed roots
 - staging directory
 - audit directory
+- Windows health snapshot path (`OPENCLAW_WINDOWS_HEALTH_SNAPSHOT`)
 
 ## What This Mode Is Not
 
@@ -56,6 +57,8 @@ Recommended persistence flow:
    persistent host path
 3. `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`
    for Windows-side startup
+4. `scripts/platform-core-windows-health.ps1` plus
+   `scripts/launch-platform-core-windows-health.cmd` for Windows-side health snapshot refresh
 
 Legacy/manual fallback flow:
 
