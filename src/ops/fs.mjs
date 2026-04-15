@@ -3,7 +3,7 @@ import path from "node:path";
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 import { resolveAllowedPath } from "../policy.mjs";
-import { resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
+import { buildWindowsExecOptions, resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
 
 const execFile = promisify(execFileCallback);
 const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
@@ -77,7 +77,7 @@ async function runWindowsMoveFallback(source, destination) {
   await execFile(
     WINDOWS_POWERSHELL_BIN,
     ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
-    { timeout: 5000, maxBuffer: 512 * 1024 },
+    buildWindowsExecOptions({ timeout: 5000, maxBuffer: 512 * 1024 }),
   );
 }
 

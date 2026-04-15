@@ -2,7 +2,7 @@ import os from "node:os";
 import fs from "node:fs/promises";
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
-import { resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
+import { buildWindowsExecOptions, resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
 
 const execFile = promisify(execFileCallback);
 const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
@@ -75,7 +75,7 @@ async function execPowerShellJson(script, timeoutMs = 3000) {
         "-Command",
         script,
       ],
-      { timeout: timeoutMs, maxBuffer: 1024 * 1024 },
+      buildWindowsExecOptions({ timeout: timeoutMs, maxBuffer: 1024 * 1024 }),
     );
     const trimmed = String(stdout || "").trim();
     if (!trimmed) {
