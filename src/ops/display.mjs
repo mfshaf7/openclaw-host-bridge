@@ -1,43 +1,24 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { buildWindowsExecOptions, resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
-
-const execFileAsync = promisify(execFile);
-const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
+import { execWindowsPowerShell } from "./windows-shell.mjs";
 
 const WINDOWS_SCRIPT_FALLBACK_DIR = "/mnt/c/ProgramData/OpenClaw/Platform-Core/runtime";
-const WINDOWS_SCRIPT_FALLBACK_BIN = "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe";
 const WINDOWS_CAPTURE_DIR = path.posix.join(WINDOWS_SCRIPT_FALLBACK_DIR, "screenshots");
 
 function windowsScriptFilePath(fileName) {
   return toWindowsPath(path.posix.join(WINDOWS_SCRIPT_FALLBACK_DIR, fileName));
 }
 
-async function runPowerShellViaScriptFile(command, timeout) {
-  await fs.mkdir(WINDOWS_SCRIPT_FALLBACK_DIR, { recursive: true });
-  const fileName = `openclaw-host-bridge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.ps1`;
-  const scriptPath = path.posix.join(WINDOWS_SCRIPT_FALLBACK_DIR, fileName);
-  const windowsPath = windowsScriptFilePath(fileName);
-  await fs.writeFile(scriptPath, String(command ?? ""), "utf8");
-  try {
-    const { stdout } = await execFileAsync(
-      WINDOWS_SCRIPT_FALLBACK_BIN,
-      ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", windowsPath],
-      buildWindowsExecOptions({
-        timeout,
-        maxBuffer: 1024 * 1024,
-      }),
-    );
-    return stdout;
-  } finally {
-    await fs.rm(scriptPath, { force: true }).catch(() => undefined);
-  }
-}
-
 async function runPowerShell(command, timeout = 15000) {
-  return await runPowerShellViaScriptFile(command, timeout);
+  const encoded = Buffer.from(String(command ?? ""), "utf16le").toString("base64");
+  const { stdout } = await execWindowsPowerShell(
+    ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded],
+    {
+      timeout,
+      maxBuffer: 1024 * 1024,
+    },
+  );
+  return stdout;
 }
 
 function parseWrittenScreenshotIndexes(stdout, expectedCount) {

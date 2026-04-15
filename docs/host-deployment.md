@@ -27,6 +27,9 @@ These committed files make up the supported host deployment bundle:
 - `src/`
 - `config/policy.example.json`
 - `config/policy.wsl.example.json`
+- `scripts/run_bridge_operation.mjs`
+- `scripts/run_bridge_operation_isolated.sh`
+- `scripts/run_windows_command.py`
 - `scripts/start-openclaw-host-bridge.sh`
 - `scripts/start-openclaw-host-recovery.sh`
 - `scripts/run-openclaw-host-bridge-supervisor.sh`
@@ -51,6 +54,11 @@ Operators are still expected to create local, untracked runtime files such as:
 - local secret-bearing environment state
 
 These should not be committed.
+
+The bridge should execute privileged host operations from a committed bridge
+revision, not from ad hoc local-only script drift in a dirty checkout. If an
+incident requires a live host-side repair, backport the exact helper-script
+change into this repository and redeploy the committed bundle.
 
 ## Persistence Model
 

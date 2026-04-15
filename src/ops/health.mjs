@@ -2,10 +2,9 @@ import os from "node:os";
 import fs from "node:fs/promises";
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
-import { buildWindowsExecOptions, resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
+import { execWindowsPowerShell } from "./windows-shell.mjs";
 
 const execFile = promisify(execFileCallback);
-const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
 const DEFAULT_WINDOWS_HEALTH_SNAPSHOT = "/mnt/c/ProgramData/OpenClaw/Platform-Core/runtime/windows-health.json";
 const WINDOWS_HEALTH_SNAPSHOT_MAX_AGE_MS = 2 * 60 * 1000;
 
@@ -66,8 +65,7 @@ async function safeFetchJson(url, timeoutMs = 1500) {
 
 async function execPowerShellJson(script, timeoutMs = 3000) {
   try {
-    const { stdout } = await execFile(
-      WINDOWS_POWERSHELL_BIN,
+    const { stdout } = await execWindowsPowerShell(
       [
         "-NoProfile",
         "-ExecutionPolicy",
@@ -75,7 +73,7 @@ async function execPowerShellJson(script, timeoutMs = 3000) {
         "-Command",
         script,
       ],
-      buildWindowsExecOptions({ timeout: timeoutMs, maxBuffer: 1024 * 1024 }),
+      { timeout: timeoutMs, maxBuffer: 1024 * 1024 },
     );
     const trimmed = String(stdout || "").trim();
     if (!trimmed) {
