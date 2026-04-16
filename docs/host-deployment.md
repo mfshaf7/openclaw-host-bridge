@@ -123,11 +123,32 @@ answer:
 - which repo or artifact is running
 - which config path is active
 - which environment file is expected
+- which OpenClaw home root the bridge believes it is serving
+- which staging, quarantine, and audit directories are active
+- whether those directories align with the active `OPENCLAW_CONFIG_PATH` home
 - which PID is serving
 - which commit and package version the process loaded
 
 If an operator cannot prove those facts from the live bridge plus `systemd`,
 the host deployment is not at the supported enterprise standard yet.
+
+## Environment Root Alignment
+
+The bridge policy file is local and untracked, but it still has to align with
+the environment home that the service is serving.
+
+If `OPENCLAW_CONFIG_PATH` points at `/home/<user>/.openclaw/...`, then the
+bridge policy should normally stage and audit under that same
+`/home/<user>/.openclaw` root. If it points at
+`/home/<user>/.openclaw-stage/...`, then the policy should normally stage and
+audit under `/home/<user>/.openclaw-stage`.
+
+Do not run one shared bridge instance with stage-rooted `staging_dir` and
+prod-rooted `sharedPathMap`, or the reverse. That causes real delivery drift:
+
+- screenshots and staged files are returned with the wrong environment root
+- Telegram delivery rejects media as outside the allowed local directory
+- audit evidence lands under the wrong environment
 
 Operator tracking:
 

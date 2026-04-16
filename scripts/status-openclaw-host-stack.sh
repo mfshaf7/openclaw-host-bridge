@@ -79,6 +79,15 @@ print("  source    :", runtime.get("source", "unknown"))
 print("  root      :", runtime.get("rootPath", "unknown"))
 print("  config    :", runtime.get("configPath", "unknown"))
 print("  env file  :", runtime.get("envFilePath", "unknown"))
+policy = runtime.get("policyAlignment") or {}
+print("  oclaw home:", policy.get("expectedOpenClawHome", "unknown"))
+print("  staging   :", policy.get("stagingDir", "unknown"))
+print("  quarantine:", policy.get("quarantineDir", "unknown"))
+print("  audit dir :", policy.get("auditDir", "unknown"))
+print("  align ok  :", policy.get("ok", "unknown"))
+issues = policy.get("issues") or []
+if issues:
+    print("  align err :", "; ".join(str(item) for item in issues))
 print("  git commit:", runtime.get("gitCommit", "unknown"))
 print("  version   :", runtime.get("packageVersion", "unknown"))
 print("  pid       :", runtime.get("pid", "unknown"))

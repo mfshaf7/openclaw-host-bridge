@@ -28,6 +28,43 @@ function inferRuntimeSource(rootPath) {
   return rootPath.includes(`${path.sep}projects${path.sep}`) ? "repo_checkout" : "packaged_artifact";
 }
 
+function inferExpectedOpenClawHome(openclawConfigPath) {
+  return path.dirname(openclawConfigPath);
+}
+
+function isWithinRoot(targetPath, rootPath) {
+  const normalizedTarget = path.resolve(targetPath);
+  const normalizedRoot = path.resolve(rootPath);
+  return normalizedTarget === normalizedRoot || normalizedTarget.startsWith(`${normalizedRoot}${path.sep}`);
+}
+
+function summarizePolicyAlignment(config, openclawConfigPath) {
+  const expectedOpenClawHome = inferExpectedOpenClawHome(openclawConfigPath);
+  const stagingDir = path.resolve(config.stagingDir);
+  const auditDir = path.resolve(config.auditDir);
+  const quarantineDir = path.resolve(config.quarantineDir);
+  const issues = [];
+
+  if (!isWithinRoot(stagingDir, expectedOpenClawHome)) {
+    issues.push("staging_dir is outside the active OPENCLAW_CONFIG_PATH home root");
+  }
+  if (!isWithinRoot(auditDir, expectedOpenClawHome)) {
+    issues.push("audit.dir is outside the active OPENCLAW_CONFIG_PATH home root");
+  }
+  if (!isWithinRoot(quarantineDir, expectedOpenClawHome)) {
+    issues.push("quarantine_dir is outside the active OPENCLAW_CONFIG_PATH home root");
+  }
+
+  return {
+    expectedOpenClawHome,
+    stagingDir,
+    auditDir,
+    quarantineDir,
+    ok: issues.length === 0,
+    issues,
+  };
+}
+
 export function createRuntimeInfo(config, options = {}) {
   const startedAtMs = options.startedAtMs ?? Date.now();
   const rootPath = path.resolve(options.rootPath ?? process.env.OPENCLAW_HOST_BRIDGE_ROOT ?? process.cwd());
@@ -49,6 +86,7 @@ export function createRuntimeInfo(config, options = {}) {
     configPath,
     openclawConfigPath,
     envFilePath,
+    policyAlignment: summarizePolicyAlignment(config, openclawConfigPath),
     packageVersion: readPackageVersion(rootPath),
     gitCommit: readGitCommit(rootPath),
   };
@@ -65,6 +103,7 @@ export function snapshotRuntimeInfo(runtimeInfo) {
     configPath: runtimeInfo.configPath,
     openclawConfigPath: runtimeInfo.openclawConfigPath,
     envFilePath: runtimeInfo.envFilePath,
+    policyAlignment: runtimeInfo.policyAlignment,
     packageVersion: runtimeInfo.packageVersion,
     gitCommit: runtimeInfo.gitCommit,
   };

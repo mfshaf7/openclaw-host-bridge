@@ -40,6 +40,18 @@ Update at least:
 - `audit.dir`
 - permission flags
 
+Keep the local policy rooted to the same OpenClaw home that the bridge service
+is serving through `OPENCLAW_CONFIG_PATH`.
+
+Examples:
+
+- prod-style host home: `/home/<user>/.openclaw/...`
+- stage-style host home: `/home/<user>/.openclaw-stage/...`
+
+If you need concurrent stage and prod host-control with different media roots,
+use separate bridge instances or separate listeners. Do not point one shared
+bridge listener at stage staging directories while prod pods consume it.
+
 Recommended first posture:
 
 ```json
