@@ -105,10 +105,17 @@ async function execDockerInspect() {
 }
 
 async function getGatewayStatus() {
+  const configuredGatewayHealthUrl =
+    typeof process.env.OPENCLAW_GATEWAY_HEALTH_URL === "string" &&
+    process.env.OPENCLAW_GATEWAY_HEALTH_URL.trim()
+      ? process.env.OPENCLAW_GATEWAY_HEALTH_URL.trim()
+      : "";
   const dockerState = await execDockerInspect();
   if (dockerState) {
     return {
       source: "docker",
+      checked: true,
+      required: true,
       ok:
         dockerState.Status === "running" &&
         ((dockerState.Health && dockerState.Health.Status === "healthy") || !dockerState.Health),
@@ -116,8 +123,16 @@ async function getGatewayStatus() {
       health: dockerState.Health?.Status || null,
     };
   }
-  const gatewayHealthUrl =
-    process.env.OPENCLAW_GATEWAY_HEALTH_URL || "http://127.0.0.1:18789/healthz";
+  if (!configuredGatewayHealthUrl) {
+    return {
+      source: "skipped",
+      checked: false,
+      required: false,
+      ok: true,
+      reason: "gateway health probe not configured for this host-side bridge deployment",
+    };
+  }
+  const gatewayHealthUrl = configuredGatewayHealthUrl;
   const httpState = await safeFetchJson(gatewayHealthUrl, 1500);
   if (httpState.ok) {
     const body =
@@ -126,6 +141,8 @@ async function getGatewayStatus() {
         : null;
     return {
       source: "http",
+      checked: true,
+      required: true,
       url: gatewayHealthUrl,
       ok: body?.ok === true || httpState.status === 200,
       status: httpState.status,
@@ -134,6 +151,8 @@ async function getGatewayStatus() {
   }
   return {
     source: "http",
+    checked: true,
+    required: true,
     url: gatewayHealthUrl,
     ok: false,
     error: httpState.error || "gateway health check failed",
@@ -436,7 +455,9 @@ export async function healthCheck(config) {
     bridge.ok === true &&
     host.ok === true &&
     storage.ok === true &&
-    Object.values(integrations).every((entry) => entry?.ok === true || entry?.detected === true);
+    Object.values(integrations).every(
+      (entry) => entry?.required === false || entry?.ok === true || entry?.detected === true,
+    );
 
   return {
     ok,
