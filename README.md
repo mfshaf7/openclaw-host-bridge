@@ -89,6 +89,13 @@ The bridge is expected to be independently observable.
 For privileged host-control work, a change is not complete unless these
 visibility surfaces still make sense after the change.
 
+## Security References
+
+- [`security-architecture/docs/architecture/components/openclaw-host-bridge/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/components/openclaw-host-bridge/README.md)
+- [`security-architecture/docs/architecture/domains/host-control.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/domains/host-control.md)
+- [`security-architecture/docs/reviews/security-review-checklist.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/security-review-checklist.md)
+- [`security-architecture/docs/reviews/components/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/components/README.md)
+
 ## Published Interface Contract
 
 This repository publishes the active bridge contract for downstream repos in:
@@ -125,6 +132,11 @@ Read in this order:
 3. [docs/wsl-mode.md](docs/wsl-mode.md)
 4. [docs/host-deployment.md](docs/host-deployment.md)
 5. [docs/install.md](docs/install.md)
+6. security review surfaces:
+   - [`security-architecture/docs/architecture/components/openclaw-host-bridge/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/components/openclaw-host-bridge/README.md)
+   - [`security-architecture/docs/architecture/domains/host-control.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/domains/host-control.md)
+   - [`security-architecture/docs/reviews/security-review-checklist.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/security-review-checklist.md)
+   - [`security-architecture/docs/reviews/components/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/components/README.md)
 
 ## Validation
 
