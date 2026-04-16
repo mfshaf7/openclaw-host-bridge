@@ -27,6 +27,9 @@ These committed files make up the supported host deployment bundle:
 - `src/`
 - `config/policy.example.json`
 - `config/policy.wsl.example.json`
+- `scripts/run_bridge_operation.mjs`
+- `scripts/run_bridge_operation_isolated.sh`
+- `scripts/run_windows_command.py`
 - `scripts/start-openclaw-host-bridge.sh`
 - `scripts/start-openclaw-host-recovery.sh`
 - `scripts/run-openclaw-host-bridge-supervisor.sh`
@@ -51,6 +54,11 @@ Operators are still expected to create local, untracked runtime files such as:
 - local secret-bearing environment state
 
 These should not be committed.
+
+The bridge should execute privileged host operations from a committed bridge
+revision, not from ad hoc local-only script drift in a dirty checkout. If an
+incident requires a live host-side repair, backport the exact helper-script
+change into this repository and redeploy the committed bundle.
 
 ## Persistence Model
 
@@ -98,7 +106,7 @@ Verify all of:
 
 1. the bridge process exists in WSL
 2. the recovery process exists in WSL
-3. the bridge answers on its internal listener
+3. the bridge answers on its internal listener and reports runtime attestation
 4. the recovery listener answers on its internal listener
 5. Windows-side forwarding or reachability works
 6. the isolated runtime can reach the bridge and recovery listener
@@ -108,6 +116,39 @@ Operational helpers:
 
 - `scripts/status-openclaw-host-stack.sh`
 - `scripts/stop-openclaw-host-stack.sh`
+
+The bridge `/healthz` output is expected to include enough runtime evidence to
+answer:
+
+- which repo or artifact is running
+- which config path is active
+- which environment file is expected
+- which OpenClaw home root the bridge believes it is serving
+- which staging, quarantine, and audit directories are active
+- whether those directories align with the active `OPENCLAW_CONFIG_PATH` home
+- which PID is serving
+- which commit and package version the process loaded
+
+If an operator cannot prove those facts from the live bridge plus `systemd`,
+the host deployment is not at the supported enterprise standard yet.
+
+## Environment Root Alignment
+
+The bridge policy file is local and untracked, but it still has to align with
+the environment home that the service is serving.
+
+If `OPENCLAW_CONFIG_PATH` points at `/home/<user>/.openclaw/...`, then the
+bridge policy should normally stage and audit under that same
+`/home/<user>/.openclaw` root. If it points at
+`/home/<user>/.openclaw-stage/...`, then the policy should normally stage and
+audit under `/home/<user>/.openclaw-stage`.
+
+Do not run one shared bridge instance with stage-rooted `staging_dir` and
+prod-rooted `sharedPathMap`, or the reverse. That causes real delivery drift:
+
+- screenshots and staged files are returned with the wrong environment root
+- Telegram delivery rejects media as outside the allowed local directory
+- audit evidence lands under the wrong environment
 
 Operator tracking:
 

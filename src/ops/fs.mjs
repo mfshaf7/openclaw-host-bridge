@@ -1,12 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { execFile as execFileCallback } from "node:child_process";
-import { promisify } from "node:util";
 import { resolveAllowedPath } from "../policy.mjs";
-import { resolveWindowsPowerShellBinary } from "./windows-shell.mjs";
-
-const execFile = promisify(execFileCallback);
-const WINDOWS_POWERSHELL_BIN = resolveWindowsPowerShellBinary();
+import { execWindowsPowerShell } from "./windows-shell.mjs";
 const PROTECTED_WINDOWS_NAMES = new Set([
   "system volume information",
   "$recycle.bin",
@@ -74,8 +69,7 @@ async function runWindowsMoveFallback(source, destination) {
         "$ErrorActionPreference = 'Stop'",
         `Move-Item -LiteralPath '${sourceWindows.replace(/'/g, "''")}' -Destination '${destinationWindows.replace(/'/g, "''")}'`,
       ].join("; ");
-  await execFile(
-    WINDOWS_POWERSHELL_BIN,
+  await execWindowsPowerShell(
     ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
     { timeout: 5000, maxBuffer: 512 * 1024 },
   );

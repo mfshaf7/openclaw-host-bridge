@@ -10,7 +10,7 @@ should be revisited in a future maintenance window.
 | Area | Current state | Evidence | Next revisit |
 | --- | --- | --- | --- |
 | Telegram host-control topic routing | Working | Live self-heal requests now route and reply | Add broader regression coverage for topic-bound commands |
-| Bridge runtime | Working | `/healthz` reachable and bridge restart path verified | Keep ownership path simple and documented |
+| Bridge runtime | Working, but isolated host ops need explicit regression coverage | `/healthz` reachable and bridge restart path verified | Add regression coverage for isolated screenshot and monitor-power dispatch |
 | Recovery runtime | Working | `/healthz` reachable and diagnostics/self-heal reachable | Add repair history output |
 | Self-heal for bridge-down scenario | Working | Telegram-triggered repair recovered bridge after forced failure | Add audit trail and explicit repair history |
 | Windows logon persistence for full stack | Working | Real reboot/logon verified `PlatformCoreHostStack`, bridge `/healthz`, recovery `/healthz`, and Telegram host-control replies on 2026-04-08 | Re-check only after the next bootstrap-path change |
@@ -54,6 +54,7 @@ Latest completed reboot/logon verification:
 | Add one-shot full operator status view | High | In progress | `host status` exists; extend it into a broader operator summary later |
 | Add admin-action audit log | Medium | Pending | Covers writes, allowed-root changes, repairs, restarts |
 | Create maintenance checklist for future changes | Medium | Pending | Before/after validation for safe updates |
+| Package isolated host-operation helpers as committed deployment inputs | High | In progress | Required so screenshot/admin paths are not vulnerable to local untracked script drift |
 
 ## Change Discipline
 
