@@ -23,6 +23,10 @@ promotion.
 - `docs/wsl-mode.md`
 - `docs/host-deployment.md`
 - `docs/install.md`
+- `security-architecture/docs/architecture/components/openclaw-host-bridge/README.md`
+- `security-architecture/docs/architecture/domains/host-control.md`
+- `security-architecture/docs/reviews/security-review-checklist.md`
+- `security-architecture/docs/reviews/components/README.md`
 
 ## Working Rules
 
