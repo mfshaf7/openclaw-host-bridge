@@ -89,6 +89,21 @@ The bridge is expected to be independently observable.
 For privileged host-control work, a change is not complete unless these
 visibility surfaces still make sense after the change.
 
+## Published Interface Contract
+
+This repository publishes the active bridge contract for downstream repos in:
+
+- `contracts/interface-manifest.json`
+
+That manifest is validated by:
+
+```bash
+npm run test:interface-contract
+```
+
+`openclaw-runtime-distribution` should consume this published contract instead
+of grepping private bridge source text.
+
 ## Change Governance
 
 When bridge behavior changes, the work should normally include:
