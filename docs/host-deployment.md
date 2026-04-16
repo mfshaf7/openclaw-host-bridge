@@ -178,5 +178,7 @@ Operator tracking:
 In a multi-repo workspace:
 
 - this repository is the canonical host bridge runtime source
-- `openclaw-isolated-deployment` documents the system-wide deployment model
-- `openclaw-isolated-deployment/openclaw-host-bridge/` is documentation-oriented and should not be mistaken for the runnable bridge source tree
+- `platform-engineering/products/openclaw/architecture-and-owner-model.md`
+  documents the current platform-side OpenClaw architecture and owner model
+- `security-architecture/docs/architecture/domains/host-control.md`
+  documents the security posture for host-control
