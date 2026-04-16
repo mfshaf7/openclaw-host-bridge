@@ -89,3 +89,8 @@ separate container boundary, gateway health is optional unless the operator
 explicitly configures `OPENCLAW_GATEWAY_HEALTH_URL`. Remote gateway reachability
 can be observed elsewhere without making the host bridge claim a false local
 degradation.
+
+That health surface must still provide runtime attestation. `/healthz` should
+identify the live root path, config path, expected environment file, package
+version, PID, and Git commit when available so operators can prove which bridge
+revision is enforcing host policy.

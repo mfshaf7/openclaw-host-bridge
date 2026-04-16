@@ -15,6 +15,7 @@ if [[ -z "$CONFIG_PATH" ]]; then
   fi
 fi
 OPENCLAW_CONFIG_PATH_VALUE="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_HOME_DIR/openclaw.json}"
+OPENCLAW_HOST_BRIDGE_ENV_FILE_VALUE="${OPENCLAW_HOST_BRIDGE_ENV_FILE:-/etc/openclaw/host-bridge/openclaw-host-bridge.env}"
 PID_PATH="${OPENCLAW_HOST_BRIDGE_PID_PATH:-$ROOT/tmp/openclaw-host-bridge.pid}"
 LOCK_PATH="${OPENCLAW_HOST_BRIDGE_LOCK_PATH:-$ROOT/tmp/openclaw-host-bridge.lock}"
 LOG_PATH="${OPENCLAW_HOST_BRIDGE_LOG_PATH:-$ROOT/tmp/openclaw-host-bridge.log}"
@@ -98,6 +99,7 @@ export OPENCLAW_HOST_BRIDGE_ROOT="$ROOT"
 export OPENCLAW_CONFIG_PATH="$OPENCLAW_CONFIG_PATH_VALUE"
 export OPENCLAW_GATEWAY_TOKEN="$gateway_token"
 export OPENCLAW_HOST_BRIDGE_CONFIG="$CONFIG_PATH"
+export OPENCLAW_HOST_BRIDGE_ENV_FILE="$OPENCLAW_HOST_BRIDGE_ENV_FILE_VALUE"
 
 echo "$$" >"$PID_PATH"
 exec node "$ROOT/src/index.mjs" >>"$LOG_PATH" 2>&1

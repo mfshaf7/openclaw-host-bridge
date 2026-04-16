@@ -106,7 +106,7 @@ Verify all of:
 
 1. the bridge process exists in WSL
 2. the recovery process exists in WSL
-3. the bridge answers on its internal listener
+3. the bridge answers on its internal listener and reports runtime attestation
 4. the recovery listener answers on its internal listener
 5. Windows-side forwarding or reachability works
 6. the isolated runtime can reach the bridge and recovery listener
@@ -116,6 +116,18 @@ Operational helpers:
 
 - `scripts/status-openclaw-host-stack.sh`
 - `scripts/stop-openclaw-host-stack.sh`
+
+The bridge `/healthz` output is expected to include enough runtime evidence to
+answer:
+
+- which repo or artifact is running
+- which config path is active
+- which environment file is expected
+- which PID is serving
+- which commit and package version the process loaded
+
+If an operator cannot prove those facts from the live bridge plus `systemd`,
+the host deployment is not at the supported enterprise standard yet.
 
 Operator tracking:
 

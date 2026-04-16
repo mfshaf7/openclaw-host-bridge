@@ -4,6 +4,7 @@ import { loadConfig } from "./config.mjs";
 import { ensureDirectories } from "./policy.mjs";
 import { writeAudit } from "./audit.mjs";
 import { dispatch } from "./dispatcher.mjs";
+import { createRuntimeInfo, snapshotRuntimeInfo } from "./runtime-info.mjs";
 
 function json(statusCode, payload) {
   return {
@@ -31,10 +32,20 @@ function checkAuth(req, config) {
 export async function createServer() {
   const config = await loadConfig();
   await ensureDirectories(config);
+  const runtimeInfo = createRuntimeInfo(config);
 
   const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && req.url === "/healthz") {
-      const out = json(200, { ok: true, service: "openclaw-host-bridge", mode: config.mode });
+      const out = json(200, {
+        ok: true,
+        service: "openclaw-host-bridge",
+        mode: config.mode,
+        listener: {
+          host: config.listenHost,
+          port: config.listenPort,
+        },
+        runtime: snapshotRuntimeInfo(runtimeInfo),
+      });
       res.writeHead(out.statusCode, out.headers);
       res.end(out.body);
       return;
@@ -108,6 +119,7 @@ export async function createServer() {
           host: config.listenHost,
           port: config.listenPort,
           config: config.configPath,
+          runtime: snapshotRuntimeInfo(runtimeInfo),
         }),
       );
     },
