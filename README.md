@@ -1,25 +1,31 @@
 # openclaw-host-bridge
 
-`openclaw-host-bridge` is the host-side enforcement layer for OpenClaw host control.
+`openclaw-host-bridge` is the canonical host-side enforcement layer for
+OpenClaw host control.
 
-It exists for one reason: OpenClaw can run in an isolated container or VM, but users still want controlled access to the real host PC. The bridge provides that path without turning the assistant runtime itself into the host trust boundary.
+It exists for one reason: OpenClaw can run in an isolated container or VM, but
+users still want controlled access to the real host PC. The bridge provides
+that path without turning the assistant runtime itself into the host trust
+boundary.
 
-## What This Repository Is
+## What This Repository Owns
 
-This repository implements:
+This repository owns:
 
 - host-side operation dispatch
-- permission classes
 - allowed-root enforcement
+- permission classes
 - export staging
 - audit logging
-- Windows and WSL-oriented runtime workflows
+- runtime attestation
+- WSL and Windows-oriented host runtime workflows
 
-It is not:
+It does not own:
 
-- an OpenClaw core patch
-- a generic remote shell
-- a replacement for the OpenClaw runtime
+- Telegram user experience
+- host-control tool exposure inside the gateway
+- platform rollout or digest approval
+- OpenClaw core behavior
 
 ## Architecture Role
 
@@ -28,72 +34,72 @@ flowchart LR
     Gateway[OpenClaw runtime]
     Plugin[host-control plugin]
     Bridge[openclaw-host-bridge]
-    Host[Windows host]
+    Host[Windows / WSL host]
 
     Gateway --> Plugin --> Bridge --> Host
 ```
 
-The bridge is the place where host access becomes real. That is why it owns policy and audit.
+The bridge is the point where host access becomes real. That is why policy,
+audit, and attestation belong here.
 
-## Why The Bridge Exists
+## Main Workflow
 
-Without a separate host bridge, most local-assistant setups end up doing one of these:
+1. A runtime-side tool request reaches the bridge.
+2. The bridge validates the requested operation against typed permissions and
+   allowed roots.
+3. The bridge performs the host action or stages a delivery artifact.
+4. The bridge records evidence through logs, audit output, and runtime
+   attestation surfaces.
+5. Operators verify the live bridge through host-local health and status
+   surfaces.
 
-- broad shell execution from the assistant runtime
-- unstructured scripts with no stable policy boundary
-- channel-specific hacks that reach directly into the host
+## Supported Runtime Shape
 
-This bridge exists to avoid those failure modes.
-
-## Current Scope
-
-Current main operation areas:
-
-- health and host summary
-- file listing and search
-- metadata inspection
-- folder creation and move/rename
-- export staging for Telegram
-- desktop screenshots
-- monitor power control
-
-## Permission Model
-
-The bridge groups operations into explicit permission classes:
-
-- `read`
-- `organize`
-- `export`
-- `browser_inspect`
-- `admin_high_risk`
-
-That separation matters because:
-
-- read-only host insight should stay easy
-- mutating file actions should stay deliberate
-- export should be separate from ordinary organization
-- high-risk admin changes should be gated more tightly
-
-## Supported Mode
-
-The main documented mode in this repo is:
+The current supported model is:
 
 - Windows host
 - WSL2-backed bridge runtime
-- OpenClaw running separately in an isolated VM or container
+- OpenClaw running separately in an isolated container or VM
+- prod bridge always on through `systemd`
+- stage bridge available as an on-demand `systemd` unit for test windows only
 
-This is not a hidden workaround. It is the current supported operating model of this repository.
+This split preserves a clean host trust boundary while avoiding an always-on
+extra stage listener when stage is suspended.
 
-## Relationship To The Deployment Workspace
+## Audit And Visibility
 
-This repository is the canonical bridge source tree.
+The bridge is expected to be independently observable.
 
-In the isolated deployment model, the deployment workspace may also contain a small `openclaw-host-bridge/` directory for documentation and integration references. Operators should still treat this standalone repository as the runnable bridge source for:
+- health and runtime attestation:
+  - bridge `/healthz`
+- operator status:
+  - `scripts/status-openclaw-host-stack.sh`
+- persistent host logs:
+  - `journalctl -u openclaw-host-bridge.service`
+  - `journalctl -u openclaw-host-bridge-stage.service`
+- policy-aligned audit evidence:
+  - local `audit.dir` configured in the policy file
+- version and runtime identity:
+  - package version
+  - git commit
+  - PID
+  - config path
+  - environment file path
 
-- bridge scripts
-- bridge runtime code
-- bridge config examples
-- bridge tests
+For privileged host-control work, a change is not complete unless these
+visibility surfaces still make sense after the change.
+
+## Change Governance
+
+When bridge behavior changes, the work should normally include:
+
+- the bridge code or launcher change
+- validation or test updates
+- host-deployment or security-model doc updates
+- provisioning or runtime evidence updates when the live host model changed
+
+Live host-only fixes are containment until the owning repo and provisioning path
+reflect them.
 
 ## Start Here
 
@@ -105,7 +111,7 @@ Read in this order:
 4. [docs/host-deployment.md](docs/host-deployment.md)
 5. [docs/install.md](docs/install.md)
 
-## Tests
+## Validation
 
 Run:
 
@@ -113,7 +119,26 @@ Run:
 node --test test/*.test.mjs
 ```
 
+Useful live checks:
+
+```bash
+bash scripts/status-openclaw-host-stack.sh
+curl http://127.0.0.1:48721/healthz
+```
+
+For stage bridge windows:
+
+```bash
+curl http://127.0.0.1:48731/healthz
+```
+
 ## Related Repositories
 
-- OpenClaw-side adapter plugin: `host-control-openclaw-plugin`
-- channel-side deterministic Telegram behavior: `openclaw-telegram-enhanced`
+- `openclaw-telegram-enhanced`
+  - Telegram delivery and UX behavior
+- `openclaw-runtime-distribution`
+  - active stage/prod gateway composition path
+- `platform-engineering`
+  - host provisioning, stage lifecycle orchestration, and release authority
+- `security-architecture`
+  - trust-boundary and privileged-control review criteria
