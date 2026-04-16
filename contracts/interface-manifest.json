@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "contractId": "openclaw-host-bridge.interface.v1",
+  "ownerRepo": "openclaw-host-bridge",
+  "attestation": {
+    "healthEndpoint": "/healthz",
+    "statusScript": "scripts/status-openclaw-host-stack.sh"
+  },
+  "stableOperations": [
+    {
+      "name": "health.check",
+      "permission": "read"
+    },
+    {
+      "name": "config.allowed_roots.list",
+      "permission": "read"
+    },
+    {
+      "name": "config.host_discovery.overview",
+      "permission": "read"
+    },
+    {
+      "name": "config.host_discovery.browse",
+      "permission": "read"
+    },
+    {
+      "name": "fs.list",
+      "permission": "read"
+    },
+    {
+      "name": "fs.search",
+      "permission": "read"
+    },
+    {
+      "name": "fs.read_meta",
+      "permission": "read"
+    },
+    {
+      "name": "fs.mkdir",
+      "permission": "organize"
+    },
+    {
+      "name": "fs.move",
+      "permission": "organize"
+    },
+    {
+      "name": "fs.quarantine",
+      "permission": "organize"
+    },
+    {
+      "name": "fs.stage_for_telegram",
+      "permission": "export"
+    },
+    {
+      "name": "display.screenshot",
+      "permission": "export"
+    },
+    {
+      "name": "config.allowed_roots.add",
+      "permission": "admin_high_risk"
+    },
+    {
+      "name": "config.allowed_roots.remove",
+      "permission": "admin_high_risk"
+    },
+    {
+      "name": "display.monitor_power",
+      "permission": "admin_high_risk"
+    }
+  ],
+  "scaffoldOperations": [
+    {
+      "name": "browser.tabs.list",
+      "permission": "read",
+      "behavior": "returns_unavailable"
+    },
+    {
+      "name": "browser.tabs.inspect",
+      "permission": "browser_inspect",
+      "behavior": "throws_not_implemented"
+    },
+    {
+      "name": "fs.zip_for_export",
+      "permission": "export",
+      "behavior": "throws_not_implemented"
+    }
+  ]
+}
