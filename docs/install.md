@@ -32,6 +32,8 @@ Start from:
 Create a local copy such as:
 
 - `config/policy.local.json`
+- `config/policy.stage.local.json` when you want a separate on-demand stage
+  listener
 
 Update at least:
 
@@ -107,6 +109,13 @@ Recommended flow:
 3. start the supported persistent stack with `systemctl start openclaw-host-stack.target`
 4. verify status with `systemctl status openclaw-host-stack.target openclaw-host-bridge.service openclaw-host-recovery.service`
 5. only then wire in the Windows logon task with `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`
+
+For stage testing with a separate on-demand bridge listener:
+
+1. create `config/policy.stage.local.json` rooted at `/home/<user>/.openclaw-stage`
+2. provision the stage bridge unit from `platform-engineering`
+3. start `openclaw-host-bridge-stage.service` only when stage is being resumed
+4. stop `openclaw-host-bridge-stage.service` again when stage is suspended
 
 
 Windows health snapshot path for full host health data:

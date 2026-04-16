@@ -20,6 +20,7 @@ PID_PATH="${OPENCLAW_HOST_BRIDGE_PID_PATH:-$ROOT/tmp/openclaw-host-bridge.pid}"
 LOCK_PATH="${OPENCLAW_HOST_BRIDGE_LOCK_PATH:-$ROOT/tmp/openclaw-host-bridge.lock}"
 LOG_PATH="${OPENCLAW_HOST_BRIDGE_LOG_PATH:-$ROOT/tmp/openclaw-host-bridge.log}"
 NODE_BIN_DIR="${OPENCLAW_HOST_BRIDGE_NODE_BIN_DIR:-}"
+BRIDGE_PORT="${OPENCLAW_HOST_BRIDGE_PORT:-}"
 
 resolve_node_bin_dir() {
   if [[ -n "$NODE_BIN_DIR" && -x "$NODE_BIN_DIR/node" ]]; then
@@ -39,6 +40,34 @@ resolve_node_bin_dir() {
   done
 
   printf '%s\n' ""
+}
+
+resolve_bridge_port() {
+  local node_cmd
+  node_cmd="node"
+  if [[ -n "$NODE_BIN_DIR" && -x "$NODE_BIN_DIR/node" ]]; then
+    node_cmd="$NODE_BIN_DIR/node"
+  fi
+
+  if [[ -n "$BRIDGE_PORT" ]]; then
+    printf '%s\n' "$BRIDGE_PORT"
+    return 0
+  fi
+
+  "$node_cmd" -e '
+const fs = require("fs");
+const path = process.argv[1];
+const fallback = "48721";
+try {
+  const config = JSON.parse(fs.readFileSync(path, "utf8"));
+  const port = config?.listener?.port ?? config?.listen?.port;
+  if (typeof port === "number" || typeof port === "string") {
+    process.stdout.write(String(port));
+    process.exit(0);
+  }
+} catch {}
+process.stdout.write(fallback);
+' "$CONFIG_PATH"
 }
 
 ensure_wsl_interop() {
@@ -67,6 +96,7 @@ pid_matches_bridge() {
 }
 
 NODE_BIN_DIR="$(resolve_node_bin_dir)"
+BRIDGE_PORT="$(resolve_bridge_port)"
 export PATH="$NODE_BIN_DIR:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 ensure_wsl_interop
 
@@ -86,8 +116,8 @@ if [[ -f "$PID_PATH" ]]; then
   fi
 fi
 
-if command -v ss >/dev/null 2>&1 && ss -ltn "sport = :48721" | grep -q ':48721'; then
-  echo "openclaw-host-bridge port 48721 already listening"
+if command -v ss >/dev/null 2>&1 && ss -ltn "sport = :$BRIDGE_PORT" | grep -q ":$BRIDGE_PORT"; then
+  echo "openclaw-host-bridge port $BRIDGE_PORT already listening"
   exit 0
 fi
 
@@ -100,6 +130,7 @@ export OPENCLAW_CONFIG_PATH="$OPENCLAW_CONFIG_PATH_VALUE"
 export OPENCLAW_GATEWAY_TOKEN="$gateway_token"
 export OPENCLAW_HOST_BRIDGE_CONFIG="$CONFIG_PATH"
 export OPENCLAW_HOST_BRIDGE_ENV_FILE="$OPENCLAW_HOST_BRIDGE_ENV_FILE_VALUE"
+export OPENCLAW_HOST_BRIDGE_PORT="$BRIDGE_PORT"
 
 echo "$$" >"$PID_PATH"
 exec node "$ROOT/src/index.mjs" >>"$LOG_PATH" 2>&1
