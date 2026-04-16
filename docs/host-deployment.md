@@ -20,6 +20,14 @@ The supported host deployment shape is:
 - persistence owned by `systemd` inside WSL
 - Windows-side startup through the `PlatformCoreHostStack` scheduled task
 
+For the current enterprise-standard shape:
+
+- `openclaw-host-bridge.service` is the steady-state prod bridge instance
+- `openclaw-host-bridge-stage.service` is an on-demand stage-only bridge
+  instance
+- the stage bridge should be started only for active stage test windows and
+  stopped again when stage is suspended
+
 ## Committed Host Deployment Files
 
 These committed files make up the supported host deployment bundle:
@@ -49,6 +57,7 @@ by this repository. Use the rendered bootstrap artifact from
 Operators are still expected to create local, untracked runtime files such as:
 
 - `config/policy.local.json`
+- `config/policy.stage.local.json`
 - local logs
 - local audit output
 - local secret-bearing environment state
@@ -71,6 +80,8 @@ Supported persistent WSL host mode:
 
 - `systemctl start openclaw-host-stack.target`
 - `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`
+- `systemctl start openclaw-host-bridge-stage.service` only during active stage
+  gateway test windows
 
 Legacy/manual persistent mode:
 
@@ -142,6 +153,13 @@ bridge policy should normally stage and audit under that same
 `/home/<user>/.openclaw` root. If it points at
 `/home/<user>/.openclaw-stage/...`, then the policy should normally stage and
 audit under `/home/<user>/.openclaw-stage`.
+
+When stage and prod are not intended to run host-control concurrently on the
+same listener, prefer:
+
+- one always-on prod bridge instance rooted at `.openclaw`
+- one disabled-by-default stage bridge instance rooted at `.openclaw-stage`
+- explicit start on stage resume and explicit stop on stage suspend
 
 Do not run one shared bridge instance with stage-rooted `staging_dir` and
 prod-rooted `sharedPathMap`, or the reverse. That causes real delivery drift:

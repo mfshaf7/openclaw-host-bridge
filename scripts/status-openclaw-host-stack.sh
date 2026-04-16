@@ -4,9 +4,30 @@ set -euo pipefail
 BRIDGE_SESSION="${OPENCLAW_HOST_BRIDGE_TMUX_SESSION:-openclaw-host-bridge}"
 RECOVERY_SESSION="${OPENCLAW_HOST_RECOVERY_TMUX_SESSION:-openclaw-host-recovery}"
 ROOT="${OPENCLAW_HOST_BRIDGE_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
-BRIDGE_UNIT="openclaw-host-bridge.service"
-RECOVERY_UNIT="openclaw-host-recovery.service"
+BRIDGE_UNIT="${OPENCLAW_HOST_BRIDGE_UNIT:-openclaw-host-bridge.service}"
+RECOVERY_UNIT="${OPENCLAW_HOST_RECOVERY_UNIT:-openclaw-host-recovery.service}"
 BRIDGE_URL="${OPENCLAW_HOST_BRIDGE_HEALTH_URL:-http://127.0.0.1:48721/healthz}"
+RECOVERY_PORT="${OPENCLAW_HOST_RECOVERY_PORT:-48722}"
+
+bridge_port_from_url() {
+  if command -v python3 >/dev/null 2>&1; then
+    python3 -c '
+import sys
+from urllib.parse import urlparse
+
+url = urlparse(sys.argv[1])
+port = url.port
+if port is None:
+    port = 443 if url.scheme == "https" else 80
+print(port)
+' "$BRIDGE_URL"
+    return 0
+  fi
+
+  printf '%s\n' "48721"
+}
+
+BRIDGE_PORT="$(bridge_port_from_url)"
 
 print_unit_status() {
   local unit="$1"
@@ -124,7 +145,7 @@ tmux has-session -t "$RECOVERY_SESSION" 2>/dev/null && echo "  recovery: running
 if command -v ss >/dev/null 2>&1; then
   echo
   echo "listeners:"
-  ss -ltn "( sport = :48721 or sport = :48722 )" || true
+  ss -ltn "( sport = :$BRIDGE_PORT or sport = :$RECOVERY_PORT )" || true
 fi
 
 echo

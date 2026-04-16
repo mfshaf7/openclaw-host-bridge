@@ -1,0 +1,31 @@
+{
+  "mode": "operator_controlled",
+  "listen": {
+    "host": "0.0.0.0",
+    "port": 48731
+  },
+  "auth": {
+    "token_env": "OPENCLAW_GATEWAY_TOKEN"
+  },
+  "allowed_roots": [
+    "/mnt/c/Users/Sevensoul/OneDrive/Desktop",
+    "/mnt/c/Users/Sevensoul/Downloads",
+    "/mnt/c/Users/Sevensoul/Music"
+  ],
+  "staging_dir": "/home/mfshaf7/.openclaw-stage/media/openclaw-host-staging",
+  "permissions": {
+    "read": true,
+    "organize": true,
+    "export": true,
+    "browser_inspect": false,
+    "admin_high_risk": true
+  },
+  "limits": {
+    "search_max_results": 100,
+    "max_export_files": 20,
+    "max_export_bytes": 104857600
+  },
+  "audit": {
+    "dir": "/home/mfshaf7/.openclaw-stage/logs/openclaw-host-audit"
+  }
+}
