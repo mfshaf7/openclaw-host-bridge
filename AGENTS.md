@@ -26,7 +26,7 @@ promotion.
 - `security-architecture/docs/architecture/components/openclaw-host-bridge/README.md`
 - `security-architecture/docs/architecture/domains/host-control.md`
 - `security-architecture/docs/reviews/security-review-checklist.md`
-- `security-architecture/docs/reviews/components/README.md`
+- `security-architecture/docs/reviews/components/2026-04-18-openclaw-host-bridge-security-baseline.md`
 
 ## Working Rules
 
