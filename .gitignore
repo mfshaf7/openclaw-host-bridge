@@ -5,3 +5,7 @@ dist/
 *.log
 config/policy.local.json
 *.pid
+
+# Python bytecode
+__pycache__/
+*.py[cod]
