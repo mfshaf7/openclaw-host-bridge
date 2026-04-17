@@ -44,6 +44,7 @@ promotion.
 
 - `node --test test/*.test.mjs`
 - `npm run validate:governance-docs` when change-record evidence changes
+- `npm run validate:change-record-requirement` for PR-shaped bridge changes that should emit a security-tagged change record
 - useful live checks:
   - `bash scripts/status-openclaw-host-stack.sh`
   - `curl http://127.0.0.1:48721/healthz`

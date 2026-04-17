@@ -152,6 +152,7 @@ Run:
 ```bash
 node --test test/*.test.mjs
 npm run validate:governance-docs
+npm run validate:change-record-requirement
 ```
 
 Useful live checks:

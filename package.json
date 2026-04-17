@@ -9,7 +9,8 @@
     "check": "node --check src/index.mjs",
     "test": "node --test",
     "test:interface-contract": "node --test test/interface-manifest.test.mjs",
-    "validate:governance-docs": "python3 scripts/validate_governance_docs.py --repo-root ."
+    "validate:governance-docs": "python3 scripts/validate_governance_docs.py --repo-root .",
+    "validate:change-record-requirement": "python3 scripts/validate_change_record_requirement.py --repo-root . --against-ref origin/main"
   },
   "engines": {
     "node": ">=20"

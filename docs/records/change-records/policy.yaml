@@ -1,0 +1,13 @@
+schema_version: 1
+security_change_record_policy:
+  change_record_dir: docs/records/change-records
+  rules:
+    - id: bridge-runtime-and-policy-surface
+      description: Host bridge runtime, scripts, contracts, and policy changes must carry a security-tagged change record.
+      match_any:
+        - src/**
+        - scripts/**
+        - contracts/**
+        - config/**
+      required_review_areas:
+        - runtime
