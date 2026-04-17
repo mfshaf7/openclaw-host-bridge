@@ -94,7 +94,7 @@ visibility surfaces still make sense after the change.
 - [`security-architecture/docs/architecture/components/openclaw-host-bridge/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/components/openclaw-host-bridge/README.md)
 - [`security-architecture/docs/architecture/domains/host-control.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/domains/host-control.md)
 - [`security-architecture/docs/reviews/security-review-checklist.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/security-review-checklist.md)
-- [`security-architecture/docs/reviews/components/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/components/README.md)
+- [`security-architecture/docs/reviews/components/2026-04-18-openclaw-host-bridge-security-baseline.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/components/2026-04-18-openclaw-host-bridge-security-baseline.md)
 
 ## Published Interface Contract
 
@@ -136,7 +136,7 @@ Read in this order:
    - [`security-architecture/docs/architecture/components/openclaw-host-bridge/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/components/openclaw-host-bridge/README.md)
    - [`security-architecture/docs/architecture/domains/host-control.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/domains/host-control.md)
    - [`security-architecture/docs/reviews/security-review-checklist.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/security-review-checklist.md)
-   - [`security-architecture/docs/reviews/components/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/components/README.md)
+   - [`security-architecture/docs/reviews/components/2026-04-18-openclaw-host-bridge-security-baseline.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/reviews/components/2026-04-18-openclaw-host-bridge-security-baseline.md)
 
 ## Validation
 
