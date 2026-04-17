@@ -89,6 +89,13 @@ The bridge is expected to be independently observable.
 For privileged host-control work, a change is not complete unless these
 visibility surfaces still make sense after the change.
 
+Security-significant or production-impacting source changes should also leave a
+short evidence record under
+[`docs/records/change-records/`](docs/records/change-records/README.md). When
+the change should feed `security-architecture` automation, include structured
+`security_evidence` front matter so the cross-repo security index can harvest
+it directly.
+
 ## Security References
 
 - [`security-architecture/docs/architecture/components/openclaw-host-bridge/README.md`](https://github.com/mfshaf7/security-architecture/blob/main/docs/architecture/components/openclaw-host-bridge/README.md)
@@ -144,6 +151,7 @@ Run:
 
 ```bash
 node --test test/*.test.mjs
+npm run validate:governance-docs
 ```
 
 Useful live checks:

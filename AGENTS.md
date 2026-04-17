@@ -23,6 +23,7 @@ promotion.
 - `docs/wsl-mode.md`
 - `docs/host-deployment.md`
 - `docs/install.md`
+- `docs/records/change-records/README.md`
 - `security-architecture/docs/architecture/components/openclaw-host-bridge/README.md`
 - `security-architecture/docs/architecture/domains/host-control.md`
 - `security-architecture/docs/reviews/security-review-checklist.md`
@@ -42,6 +43,7 @@ promotion.
 ## Validation
 
 - `node --test test/*.test.mjs`
+- `npm run validate:governance-docs` when change-record evidence changes
 - useful live checks:
   - `bash scripts/status-openclaw-host-stack.sh`
   - `curl http://127.0.0.1:48721/healthz`
