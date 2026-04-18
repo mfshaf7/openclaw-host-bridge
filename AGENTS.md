@@ -40,6 +40,18 @@ promotion.
 - If stage and prod host behavior diverge, prefer explicit environment-scoped
   policy or service wiring over hidden local drift.
 
+## Review guidelines
+
+For Codex GitHub review, treat the following as `P1` when they plausibly
+regress host-side trust enforcement:
+
+- policy bypasses, allowed-root drift, audit logging regressions, or weakened
+  runtime attestation
+- host runtime changes that hide stage or prod divergence as local drift
+  instead of explicit environment-scoped policy
+- host-affecting changes that skip deployment, security-model, or audit-surface
+  updates in the owning docs
+
 ## Validation
 
 - `node --test test/*.test.mjs`

@@ -1,0 +1,13 @@
+# Host bridge governance
+* @mfshaf7
+
+# Review and CI controls
+/.github/ @mfshaf7
+
+# Host trust-boundary surfaces
+/config/ @mfshaf7
+/contracts/ @mfshaf7
+/docs/ @mfshaf7
+/scripts/ @mfshaf7
+/src/ @mfshaf7
+/test/ @mfshaf7
