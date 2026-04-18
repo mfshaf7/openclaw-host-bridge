@@ -1,5 +1,8 @@
 # Host Deployment
 
+This is the primary operator-facing procedure for the supported
+`openclaw-host-bridge` deployment shape.
+
 ## Purpose
 
 This document explains the actual host deployment bundle for `openclaw-host-bridge` in the supported Windows + WSL mode.
