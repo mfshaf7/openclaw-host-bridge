@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="${OPENCLAW_HOST_BRIDGE_ROOT:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
+ROOT="${OPENCLAW_HOST_BRIDGE_ROOT:-$(cd -- "$SCRIPT_DIR/../.." && pwd)}"
 OPENCLAW_HOME_DIR="${OPENCLAW_HOME:-$HOME/.openclaw}"
 DEFAULT_CONFIG_PATH="$ROOT/config/policy.local.json"
 FALLBACK_CONFIG_PATH="$OPENCLAW_HOME_DIR/workspace-telegram-fast/policy.local.json"
@@ -20,8 +20,8 @@ export OPENCLAW_HOST_BRIDGE_ROOT="$ROOT"
 export OPENCLAW_HOST_BRIDGE_CONFIG="$CONFIG_PATH"
 export OPENCLAW_CONFIG_PATH="$OPENCLAW_CONFIG_PATH_VALUE"
 
-"$ROOT/scripts/start-openclaw-host-bridge-tmux.sh"
-"$ROOT/scripts/start-openclaw-host-recovery-tmux.sh"
+"$ROOT/scripts/legacy/start-openclaw-host-bridge-tmux.sh"
+"$ROOT/scripts/legacy/start-openclaw-host-recovery-tmux.sh"
 
 echo "started host stack:"
 echo "  bridge session  : ${OPENCLAW_HOST_BRIDGE_TMUX_SESSION:-openclaw-host-bridge}"

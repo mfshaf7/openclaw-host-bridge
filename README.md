@@ -66,6 +66,14 @@ The current supported model is:
 This split preserves a clean host trust boundary while avoiding an always-on
 extra stage listener when stage is suspended.
 
+The recovery service should treat `systemd` as the primary bridge owner in the
+current `Platform-Core` model. Legacy tmux restart helpers now live under
+`scripts/legacy/` for manual fallback windows only, and stage-targeted
+recovery should identify the stage bridge explicitly instead of assuming the
+prod bridge owner. When one recovery token matches multiple bridge profiles,
+the recovery service now fails closed until the caller supplies `targetProfile`
+or `bridgeUrl`.
+
 ## Audit And Visibility
 
 The bridge is expected to be independently observable.

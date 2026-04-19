@@ -62,16 +62,16 @@ Recommended persistence flow:
 
 Legacy/manual fallback flow:
 
-- `scripts/start-openclaw-host-bridge-tmux.sh`
-- `scripts/start-openclaw-host-stack-tmux.sh`
+- `scripts/legacy/README.md`
 
 If you want the bridge and recovery listener to come up from the same stable
 config root, use:
 
 - `openclaw-host-stack.target` for the supported `Platform-Core` path
-- `scripts/start-openclaw-host-stack-tmux.sh` only as a manual legacy fallback
+- `scripts/legacy/README.md` only as the manual legacy fallback surface
 
 Read:
 
 - [docs/host-deployment.md](host-deployment.md)
-- [docs/recovery-cutover.md](recovery-cutover.md)
+- [docs/legacy/recovery-cutover.md](legacy/recovery-cutover.md)
+- [docs/legacy/README.md](legacy/README.md)

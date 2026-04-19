@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="${OPENCLAW_HOST_BRIDGE_ROOT:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
+ROOT="${OPENCLAW_HOST_BRIDGE_ROOT:-$(cd -- "$SCRIPT_DIR/../.." && pwd)}"
 SESSION_NAME="${OPENCLAW_HOST_BRIDGE_TMUX_SESSION:-openclaw-host-bridge}"
 SUPERVISOR="$ROOT/scripts/run-openclaw-host-bridge-supervisor.sh"
 OPENCLAW_HOME_DIR="${OPENCLAW_HOME:-$HOME/.openclaw}"
@@ -19,7 +19,7 @@ fi
 OPENCLAW_CONFIG_PATH_VALUE="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_HOME_DIR/openclaw.json}"
 
 if ! command -v tmux >/dev/null 2>&1; then
-  echo "tmux is required for the supported persistent WSL host mode" >&2
+  echo "tmux is required for the legacy manual fallback WSL host mode" >&2
   exit 1
 fi
 

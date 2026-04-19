@@ -45,15 +45,22 @@ These committed files make up the supported host deployment bundle:
 - `scripts/start-openclaw-host-recovery.sh`
 - `scripts/run-openclaw-host-bridge-supervisor.sh`
 - `scripts/run-openclaw-host-recovery-supervisor.sh`
-- `scripts/start-openclaw-host-bridge-tmux.sh`
-- `scripts/start-openclaw-host-recovery-tmux.sh`
-- `scripts/start-openclaw-host-stack-tmux.sh`
-- `scripts/stop-openclaw-host-stack.sh`
 - `scripts/status-openclaw-host-stack.sh`
 
 Windows task registration for the supported production path is no longer owned
 by this repository. Use the rendered bootstrap artifact from
 `platform-engineering/ansible/generated/openclaw-host-stack-windows-bootstrap.ps1`.
+
+Legacy/manual fallback launchers are intentionally separated under
+`scripts/legacy/` so operators browsing the current deployment bundle do not
+mistake them for the supported path.
+
+## Legacy Manual Fallback Files
+
+These files are retained only for manual fallback and maintenance windows.
+Use [scripts/legacy/README.md](../scripts/legacy/README.md) as the legacy entry
+point instead of browsing individual fallback launchers from the current
+deployment guide.
 
 ## Local Files Operators Must Create
 
@@ -88,9 +95,11 @@ Supported persistent WSL host mode:
 
 Legacy/manual persistent mode:
 
-- `scripts/start-openclaw-host-bridge-tmux.sh`
-- `scripts/start-openclaw-host-recovery-tmux.sh`
-- `scripts/start-openclaw-host-stack-tmux.sh`
+- `scripts/legacy/README.md`
+
+Legacy/manual cleanup:
+
+- `scripts/legacy/README.md`
 
 Restart loop inside WSL:
 
@@ -129,7 +138,7 @@ Verify all of:
 Operational helpers:
 
 - `scripts/status-openclaw-host-stack.sh`
-- `scripts/stop-openclaw-host-stack.sh`
+- `scripts/legacy/README.md`
 
 The bridge `/healthz` output is expected to include enough runtime evidence to
 answer:
@@ -175,6 +184,7 @@ Operator tracking:
 
 - [docs/operator-follow-up-checklist.md](operator-follow-up-checklist.md)
 - [docs/host-control-capability-matrix.md](host-control-capability-matrix.md)
+- [docs/legacy/README.md](legacy/README.md)
 
 ## Relationship To The Deployment Workspace
 
