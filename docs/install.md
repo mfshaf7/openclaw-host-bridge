@@ -127,8 +127,7 @@ Windows health snapshot path for full host health data:
 
 Legacy/manual fallback only:
 
-- `scripts/start-openclaw-host-bridge-tmux.sh`
-- `scripts/start-openclaw-host-stack-tmux.sh`
+- `scripts/legacy/README.md`
 
 The exact startup method should be validated once in the target environment after install and after reboot/logon.
 
@@ -175,3 +174,4 @@ Export changes the risk boundary because it sends host data out through another 
 
 - [docs/wsl-mode.md](wsl-mode.md)
 - [docs/host-deployment.md](host-deployment.md)
+- [docs/legacy/README.md](legacy/README.md)

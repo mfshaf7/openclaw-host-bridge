@@ -4,13 +4,15 @@
 
 This document describes the safer rollout path for the host recovery service.
 
+It is a historical cutover note, not part of the steady-state operator surface.
+
 The goal is to improve self-heal reliability without replacing a currently
 working live setup blindly.
 
 For ongoing operator follow-up after the cutover, use:
 
-- [docs/operator-follow-up-checklist.md](operator-follow-up-checklist.md)
-- [docs/host-control-capability-matrix.md](host-control-capability-matrix.md)
+- [../operator-follow-up-checklist.md](../operator-follow-up-checklist.md)
+- [../host-control-capability-matrix.md](../host-control-capability-matrix.md)
 
 ## Current Risk
 
@@ -27,11 +29,21 @@ That is fragile because:
 The repository now supports a more deterministic recovery startup path:
 
 - `scripts/openclaw-host-recovery-server.mjs` loads config/token from stable config paths
+- `scripts/openclaw-host-recovery-server.mjs` prefers the `systemd` bridge owner
+  when the bridge unit exists and only falls back to tmux for the legacy manual
+  bridge path
+- stage-targeted recovery requests should identify the stage bridge target
+  explicitly so diagnostics and restart actions do not drift back to the prod
+  bridge owner
+- when one recovery token matches multiple bridge profiles, recovery now fails
+  closed until the request supplies `targetProfile` or `bridgeUrl`
 - `scripts/start-openclaw-host-recovery.sh` owns recovery pid/lock/log behavior
-- `scripts/start-openclaw-host-recovery-tmux.sh` exports stable config paths into the session
+- `scripts/legacy/start-openclaw-host-recovery-tmux.sh` exports stable config
+  paths into the session
 - `scripts/run-openclaw-host-recovery-supervisor.sh` provides a restart loop similar to the bridge
 - `openclaw-host-stack.target` starts both bridge and recovery under `systemd`
-- `scripts/start-openclaw-host-stack-tmux.sh` remains available only as a manual fallback
+- `scripts/legacy/start-openclaw-host-stack-tmux.sh` remains available only as
+  a manual fallback
 
 Rollout order:
 
@@ -51,7 +63,8 @@ Rollback steps:
    - or, for legacy fallback sessions only:
    - `tmux kill-session -t openclaw-host-recovery`
    - `tmux kill-session -t openclaw-host-bridge`
-2. restart the previously known-good manual path
+2. restart the previously known-good manual path, for example:
+   - `scripts/legacy/start-openclaw-host-stack-tmux.sh`
 3. verify:
    - bridge health
    - recovery health
@@ -60,7 +73,7 @@ Rollback steps:
 Operator helpers:
 
 - `scripts/status-openclaw-host-stack.sh`
-- `scripts/stop-openclaw-host-stack.sh`
+- `scripts/legacy/stop-openclaw-host-stack.sh`
 
 Because the new scripts are additive, rollback is just “stop using them”.
 
