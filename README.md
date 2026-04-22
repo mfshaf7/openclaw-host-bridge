@@ -27,7 +27,7 @@ It does not own:
 - platform rollout or digest approval
 - OpenClaw core behavior
 
-## Architecture Role
+## Architecture At A Glance
 
 ```mermaid
 flowchart LR
