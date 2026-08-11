@@ -42,8 +42,8 @@ promotion.
 
 ## Review guidelines
 
-For Codex GitHub review, treat the following as `P1` when they plausibly
-regress host-side trust enforcement:
+For owner review or optional advisory review, treat the following as `P1` when
+they plausibly regress host-side trust enforcement:
 
 - policy bypasses, allowed-root drift, audit logging regressions, or weakened
   runtime attestation
