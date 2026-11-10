@@ -8,6 +8,11 @@ security_evidence:
 
 # Windowless Windows health monitoring
 
+Status: withdrawn after the live installation process was terminated by endpoint
+protection. The isolated launcher test was not live deployment acceptance. See
+[the withdrawal record](2026-11-11-withdraw-windowless-health.md); do not deploy
+the PR18 JScript launcher or its Startup shortcut.
+
 ## Summary
 
 - Date: 2026-11-11

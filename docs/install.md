@@ -120,11 +120,17 @@ For stage testing with a separate on-demand bridge listener:
 
 Windows health snapshot path for full host health data:
 
+Use the original launcher with Windows Console Host for the qualified local
+installation. Windows Terminal can still be opened directly for interactive
+work. The withdrawn JScript/windowless shortcut from PR18 must not be installed.
+If endpoint protection flags a monitor or Startup entry, leave that entry paused
+pending verification; changing console hosts is not antivirus approval. Do not
+add exclusions or restore quarantined objects as part of this procedure. Preserve
+an existing installation's extended health script instead of overwriting it.
+
 - copy `scripts/platform-core-windows-health.ps1` to `C:\ProgramData\OpenClaw\Platform-Core\platform-core-windows-health.ps1`
 - copy `scripts/launch-platform-core-windows-health.cmd` to `C:\ProgramData\OpenClaw\Platform-Core\launch-platform-core-windows-health.cmd`
-- copy `scripts/launch-platform-core-windows-health.js` alongside those files
-- use a Startup shortcut to the GUI script host, as below; a plain Startup `.cmd`
-  can leave a visible parent terminal even with PowerShell `-WindowStyle Hidden`
+- create a Startup entry that calls the launcher
 - set `OPENCLAW_WINDOWS_HEALTH_SNAPSHOT=/mnt/c/ProgramData/OpenClaw/Platform-Core/runtime/windows-health.json` in the WSL bridge environment when you want snapshot-backed Windows health
 
 Legacy/manual fallback only:
@@ -132,39 +138,6 @@ Legacy/manual fallback only:
 - `scripts/legacy/README.md`
 
 The exact startup method should be validated once in the target environment after install and after reboot/logon.
-
-Create the shortcut in an interactive Windows PowerShell session:
-
-```powershell
-$launcher = 'C:\ProgramData\OpenClaw\Platform-Core\launch-platform-core-windows-health.js'
-$shortcutPath = Join-Path ([Environment]::GetFolderPath('Startup')) 'Platform-Core Windows Health.lnk'
-$shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcutPath)
-$shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\wscript.exe'
-$shortcut.Arguments = '//B //NoLogo //E:JScript "' + $launcher + '"'
-$shortcut.WorkingDirectory = Split-Path $launcher
-$shortcut.Save()
-```
-
-The `.js` is Windows Script Host JScript, not a Node.js module or VBScript.
-Calling the `.cmd` normally uses the same GUI launcher and returns immediately.
-Both paths retain the interactive user's identity and existing monitor behavior;
-they do not change Windows Terminal defaults or add elevation. The monitor keeps
-running after the launching shell closes. It writes native output to
-`runtime\windows-health-stdout.log` and `runtime\windows-health-stderr.log`, alongside
-the existing snapshot and `windows-health.log`. The optional
-`OPENCLAW_WINDOWS_HEALTH_RUNTIME_DIR` override remains installation-private.
-Launcher setup errors append to `runtime\windows-health-launcher.log` and return
-nonzero. The native GUI host is required; do not substitute `cscript.exe` or depend
-on PowerShell hiding an already allocated Terminal window. This path must be
-qualified on each supported Windows installation, including script-host policy.
-
-Before replacing an existing Startup entry, preserve its contents and the
-installed monitor script. Stop only the identified old monitor, remove the old
-Startup `.cmd` entry, then launch the shortcut once. Confirm exactly one monitor
-is running, the snapshot updates twice, and no visible monitor window remains.
-Do not install the repository's monitor over a locally extended script as part
-of a launcher-only repair. Check stdout/stderr logs if it fails to start; a
-successful detached launch alone does not prove monitor health.
 
 ## 6. Install OpenClaw-Side Pieces
 
