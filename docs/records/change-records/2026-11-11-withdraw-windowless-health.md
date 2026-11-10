@@ -56,8 +56,11 @@ using Microsoft's documented values; Windows Terminal remains directly usable.
 
 Readback confirms the classic-host preference, original monitor hash and disabled
 health entries. Endpoint protection remains enabled with no added exclusions.
-The Console remains reachable. Health monitoring is deliberately paused; this
-record does not claim resumed monitoring, a false positive or absence of malware.
+The Console remains reachable. A subsequent exact-process check found one
+original monitor running and writing fresh snapshots; no duplicate was started.
+Disabling a Startup entry had not established that its process was stopped.
+Automatic health startup remains unverified. This record does not claim a false
+positive, absence of malware or permission to recreate an antivirus-deleted entry.
 
 ## Follow-Up
 
