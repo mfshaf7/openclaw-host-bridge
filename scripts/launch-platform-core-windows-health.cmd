@@ -1,3 +1,3 @@
 @echo off
-set "OPENCLAW_WINDOWS_HEALTH_RUNTIME_DIR=C:\ProgramData\OpenClaw\Platform-Core\runtime"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\ProgramData\OpenClaw\Platform-Core\platform-core-windows-health.ps1" -Loop -IntervalSeconds 30
+"%SystemRoot%\System32\wscript.exe" //B //NoLogo //E:JScript "%~dp0launch-platform-core-windows-health.js"
+exit /b %errorlevel%
